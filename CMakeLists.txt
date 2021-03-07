@@ -28,8 +28,10 @@ cmake_policy(SET CMP0048 NEW)
 find_package(PkgConfig)
 pkg_search_module(GTEST REQUIRED gtest_main)
 
+find_package(QT NAMES Qt6 Qt5 COMPONENTS Test REQUIRED)
 find_package(QT NAMES Qt6 Qt5 COMPONENTS Widgets REQUIRED)
 find_package(QT NAMES Qt6 Qt5 COMPONENTS Svg REQUIRED)
+find_package(Qt${QT_VERSION_MAJOR} COMPONENTS Test REQUIRED)
 find_package(Qt${QT_VERSION_MAJOR} COMPONENTS Widgets REQUIRED)
 find_package(Qt${QT_VERSION_MAJOR} COMPONENTS Svg REQUIRED)
 include_directories("include")
@@ -68,6 +70,7 @@ target_link_libraries(
         PRIVATE
         emucomponents
         Qt${QT_VERSION_MAJOR}::Svg
+        Qt${QT_VERSION_MAJOR}::Test
         Qt${QT_VERSION_MAJOR}::Widgets
         Qt${QT_VERSION_MAJOR}::Core
 )

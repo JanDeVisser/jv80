@@ -5,14 +5,16 @@
 
 #include "memdump.h"
 
-MemModel::MemModel(const Memory &memory, QObject *parent)
-    : QAbstractListModel(parent), m_memory(memory), m_bank() {
-  auto banks = memory.banks();
-  if (!banks.empty()) {
-    m_bank = *banks.begin();
-    m_bankIx = 0;
-  } else {
-    m_bankIx = -1;
+MemModel::MemModel(const Memory *memory, word bank, QObject *parent)
+    : QAbstractListModel(parent) {
+  m_bank = memory->bank(bank);
+  if (!m_bank.valid()) {
+    auto banks = memory->banks();
+    if (!banks.empty()) {
+      m_bank = *(banks.begin());
+    } else {
+      m_bank = MemoryBank();
+    }
   }
   m_address = m_bank.start();
 }
@@ -22,97 +24,30 @@ int MemModel::rowCount(const QModelIndex &parent) const {
 }
 
 QVariant MemModel::data(const QModelIndex &index, int role) const {
-  if (!index.isValid())
-    return QVariant();
-
-  if (index.row() >= (m_bank.size() / 8) || index.row() < 0)
-    return QVariant();
-
-  if (role == Qt::DisplayRole) {
-    return getRow(index.row());
-  } else if (role == Qt::BackgroundRole) {
-    int batch = (index.row() / 100) % 2;
-    if (batch == 0)
-      return qApp->palette().base();
-    else
-      return qApp->palette().alternateBase();
+  if (!index.isValid()) {
+    return {};
   }
-  return QVariant();
-}
-
-bool MemModel::canFetchMore(const QModelIndex &parent) const {
-  if (parent.isValid()) {
-    return false;
+  if (index.row() >= (m_bank.size() / 8) || index.row() < 0) {
+    return {};
   }
-  return (m_address < m_bank.end());
-}
-
-void MemModel::fetchMore(const QModelIndex &parent) {
-  if (parent.isValid()) {
-    return;
+  if (role != Qt::DisplayRole) {
+    return {};
   }
-  word remainder = m_bank.end() - m_address;
-  int bytesToFetch = qMin(800, (int) remainder);
-
-  if (bytesToFetch <= 0) {
-    return;
-  }
-
-  beginInsertRows(QModelIndex(), m_address * 8, (m_address * 8) + bytesToFetch - 1);
-  m_address += bytesToFetch;
-  endInsertRows();
-
-  emit numberPopulated(bytesToFetch / 8);
+  return getRow(index.row());
 }
 
 QVariant MemModel::getRow(int row) const {
-  word start = (word) (row * 8);
+  word start = m_bank.start() + (row * 8);
   word end = (word) qMin(start + 8, (int) m_bank.end());
 
   auto s = QString("%1   ").arg(start, 4, 16, QLatin1Char('0'));
   for (word ix = start; ix < end; ix++) {
-    s += QString(" %1").arg(m_memory[ix], 2, 16, QLatin1Char('0'));
+    s += QString(" %1").arg(m_bank[ix], 2, 16, QLatin1Char('0'));
   }
   return QVariant(s);
 }
 
-void MemModel::reset(word addr) {
-  beginResetModel();
-  m_bank = m_memory.bank(addr);
-  if (!m_bank.valid()) {
-    m_bank = *m_memory.banks().begin();
-    m_bankIx = 0;
-    m_address = m_bank.start();
-  } else {
-    int ix = 0;
-    for (auto &b : m_memory.ban  ks()) {
-      if (b.mapped(addr)) {
-        m_bankIx = ix;
-        break;
-      }
-      ix++;
-    }
-    m_address = addr;
-  }
-  endResetModel();
-}
-
-void MemModel::reset(int ix, word addr) {
-  beginResetModel();
-  m_bank = m_memory.bank(addr);
-  m_bankIx = ix;
-  m_address = m_bank.start();
-  endResetModel();
-}
-
-void MemModel::reload() {
-  reset(m_address);
-}
-
 QModelIndex MemModel::indexOf(word addr) const {
-  if (addr == 0xFFFF) {
-    addr = m_memory.getValue();
-  }
   auto row = (addr - m_bank.start()) / 8;
   auto col = 0;
   return createIndex(row, col);
@@ -121,9 +56,9 @@ QModelIndex MemModel::indexOf(word addr) const {
 /* ----------------------------------------------------------------------- */
 
 MemDump::MemDump(BackPlane *system, QWidget *parent)
-    : QWidget(parent), m_system(system), m_model(*(system -> memory()))  {
+    : QWidget(parent), m_system(system), m_memory(system->memory())  {
   m_view = new QListView;
-  m_view->setModel(&m_model);
+  createModel(0x0000);
   QFont font("ibm3270", 12);
   QFontMetrics metrics(font);
   auto width = metrics.horizontalAdvance("0000    00 00 00 00 00 00 00 00");
@@ -147,28 +82,48 @@ MemDump::MemDump(BackPlane *system, QWidget *parent)
   setWindowTitle(tr("Memory"));
 }
 
+void MemDump::createModel(word addr) {
+  auto old_model = m_model;
+  m_model = new MemModel(m_memory, addr);
+  m_view->setModel(m_model);
+  delete old_model;
+  m_view->reset();
+}
+
 void MemDump::reload() {
-  m_model.reload();
+  auto curix = m_banks->currentIndex();
+  word addr = m_banks->currentData().toInt();
   m_banks->clear();
+  auto ix = 0;
   for (auto &bank : getSystem()->memory()->banks()) {
     m_banks->addItem(QString(bank.name().c_str()), bank.start());
+    if ((ix == curix) && (addr != bank.start())) {
+      curix = 0;
+      addr = m_banks->itemData(0).toInt();
+    }
+    ix++;
   }
-  m_banks->setCurrentIndex(m_model.currentBankIndex());
+  m_banks->setCurrentIndex(curix);
+  createModel(addr);
 }
 
 void MemDump::focusOnAddress(word addr) {
-  m_model.reset(addr);
-  if (m_banks->currentIndex() != m_model.currentBankIndex()) {
-    m_banks->setCurrentIndex(m_model.currentBankIndex());
+  auto bank = m_memory->bank(addr);
+  if (bank != m_model->getBank()) {
+    createModel(addr);
+    for (int ix = 0; ix < m_banks->count(); ix++) {
+      if (m_banks->itemData(ix) == bank.start()) {
+        m_banks->setCurrentIndex(ix);
+      }
+    }
   }
-  m_view -> setCurrentIndex(m_model.indexOf(addr));
+  m_view -> setCurrentIndex(m_model->indexOf(addr));
 }
 
 void MemDump::focus() {
-  focusOnAddress(0x0000);
+  focusOnAddress(m_model->currentAddress());
 }
 
 void MemDump::selectBank(int ix) {
-  auto addr = m_banks->currentData().toInt();
-  m_model.reset(ix, addr);
+  createModel(m_banks->currentData().toInt());
 }

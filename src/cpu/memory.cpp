@@ -90,7 +90,11 @@ bool MemoryBank::operator>=(const MemoryBank &other) const {
 }
 
 bool MemoryBank::operator==(const MemoryBank &other) const {
-  return start() == other.start();
+  return (start() == other.start()) && (start() || (size() == other.size()));
+}
+
+bool MemoryBank::operator!=(const MemoryBank &other) const {
+  return (start() != other.start()) || (!start() && (size() != other.size()));
 }
 
 std::string MemoryBank::name() const {

@@ -36,6 +36,7 @@ public:
   bool         operator>(const MemoryBank &) const;
   bool         operator>=(const MemoryBank &) const;
   bool         operator==(const MemoryBank &) const;
+  bool         operator!=(const MemoryBank &) const;
 
   std::string  name() const;
   bool         mapped(size_t) const;

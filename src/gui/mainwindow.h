@@ -30,9 +30,11 @@ private slots:
   void openFile();
 
 public:
-  explicit MainWindow(QWidget *parent = nullptr);
-  CPU *    cpu() { return m_cpu; }
-  QString  query(const QString &, const QString &);
+  explicit     MainWindow(QWidget *parent = nullptr);
+  CPU *        cpu() { return m_cpu; }
+  QString      query(const QString &, const QString &);
+  void         focusOnAddress(word addr) { m_memdump->focusOnAddress(addr); }
+  MemoryBank & currentBank() { return m_memdump->currentBank(); }
 
 private:
   CPU             *m_cpu = nullptr;

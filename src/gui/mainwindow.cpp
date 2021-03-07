@@ -459,9 +459,13 @@ void BankCommand::add() {
     cmd.setError(
       QString("Error: A block of size %1 at address %2 overlaps an existing block")
         .arg(size, addr));
-  } else if (!window->cpu()->getSystem()->memory()->add(MemoryBank(addr, size, writable))) {
-    cmd.setError(
-      QString("Error: Could not add memory block of size %1 at address %2").arg(size, addr));
+  } else {
+    if (!window->cpu()->getSystem()->memory()->add(MemoryBank(addr, size, writable))) {
+      cmd.setError(
+        QString("Error: Could not add memory block of size %1 at address %2").arg(size, addr));
+    } else {
+      window->focusOnAddress(addr);
+    }
   }
 }
 
@@ -486,7 +490,11 @@ void BankCommand::del() {
       .arg((bank.writable()) ? "RAM" : "ROM ")
       .arg(bank.size(), 4, 16, QChar('0'))
       .arg(bank.start(), 4, 16, QChar('0')), "yn") == "y") {
+    bool wasSelected = window->currentBank() == bank;
     window->cpu()->getSystem()->memory()->remove(bank);
+    if (wasSelected) {
+      window->focusOnAddress(0x0000);
+    }
   }
 }
 
