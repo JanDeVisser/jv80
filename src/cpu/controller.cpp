@@ -6,6 +6,7 @@
 
 #include "addressregister.h"
 #include "controller.h"
+#include "opcodes.h"
 #include "register.h"
 #include "registers.h"
 
@@ -13,25 +14,6 @@
 static MicroCode mcNMI = {
   .opcode = 0xFE, .instruction = "__nmi", .addressingMode = Immediate,
   .steps = {
-    { .action = MicroCode::XADDR, .src = SP, .target = MEMADDR, .opflags = SystemBus::Inc },
-    { .action = MicroCode::XDATA, .src = GP_A, .target = MEM, .opflags = SystemBus::None },
-    { .action = MicroCode::XADDR, .src = SP, .target = MEMADDR, .opflags = SystemBus::Inc },
-    { .action = MicroCode::XDATA, .src = GP_B, .target = MEM, .opflags = SystemBus::None },
-    { .action = MicroCode::XADDR, .src = SP, .target = MEMADDR, .opflags = SystemBus::Inc },
-    { .action = MicroCode::XDATA, .src = GP_C, .target = MEM, .opflags = SystemBus::None },
-    { .action = MicroCode::XADDR, .src = SP, .target = MEMADDR, .opflags = SystemBus::Inc },
-    { .action = MicroCode::XDATA, .src = GP_D, .target = MEM, .opflags = SystemBus::None },
-
-    { .action = MicroCode::XADDR, .src = SP, .target = MEMADDR, .opflags = SystemBus::Inc },
-    { .action = MicroCode::XDATA, .src = Si, .target = MEM, .opflags = SystemBus::None },
-    { .action = MicroCode::XADDR, .src = SP, .target = MEMADDR, .opflags = SystemBus::Inc },
-    { .action = MicroCode::XDATA, .src = Si, .target = MEM, .opflags = SystemBus::MSB },
-
-    { .action = MicroCode::XADDR, .src = SP, .target = MEMADDR, .opflags = SystemBus::Inc },
-    { .action = MicroCode::XDATA, .src = Di, .target = MEM, .opflags = SystemBus::None },
-    { .action = MicroCode::XADDR, .src = SP, .target = MEMADDR, .opflags = SystemBus::Inc },
-    { .action = MicroCode::XDATA, .src = Di, .target = MEM, .opflags = SystemBus::MSB },
-
     // Push the processor flags:
     { .action = MicroCode::XADDR, .src = SP, .target = MEMADDR, .opflags = SystemBus::Inc },
     { .action = MicroCode::XADDR, .src = RHS, .target = MEM, .opflags = SystemBus::None },
@@ -309,7 +291,10 @@ SystemError Controller::onLowClock() {
       break;
     case 2:
       if (!bus()->nmi()) {
-        mc = &mcNMI;
+        if ((m_interruptVector != 0xFFFF) && !m_servicingNMI) {
+          mc = &mcNMI;
+          m_servicingNMI = true;
+        }
         bus()->clearNmi();
       } else {
         mc = microCode + getValue();
@@ -334,6 +319,9 @@ SystemError Controller::onLowClock() {
           sendEvent(EV_AFTERINSTRUCTION);
         }
       } else {
+        if (getValue() == RTI) {
+          m_servicingNMI = false;
+        }
         sendEvent(EV_AFTERINSTRUCTION);
         delete m_runner;
         m_runner = nullptr;

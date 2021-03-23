@@ -9,7 +9,7 @@ CPU::CPU(QObject *parent) : QObject(parent), m_running(false), m_status(), m_key
   m_system -> defaultSetup();
   m_system -> setOutputStream(m_status);
   m_keyboard = new IOChannel(0x00, "KEY", [this]() {
-    byte ret = 0x00;
+    byte ret = 0xFF;
     m_kbdMutex.lock();
     if (!m_keys.empty()) {
       ret = m_keys[0];
@@ -20,7 +20,7 @@ CPU::CPU(QObject *parent) : QObject(parent), m_running(false), m_status(), m_key
   });
 
   m_terminal = new IOChannel(0x01, "OUT", [this](byte out) {
-    emit terminalWrite(QString((char) out));
+    emit terminalWrite((int) out);
   });
 
   m_system -> insertIO(m_keyboard);
@@ -53,6 +53,12 @@ void CPU::tick(word addr) {
   start(Controller::BreakAtClock);
 }
 
+void CPU::interrupt() {
+  if (m_running) {
+    setRunMode(Controller::BreakAtInstruction);
+  }
+}
+
 void CPU::reset() {
   if (!m_running) {
     m_system->reset();
@@ -61,16 +67,18 @@ void CPU::reset() {
 
 void CPU::start(Controller::RunMode runMode) {
   if (!m_running && m_system -> bus().halt()) {
+    m_kbdMutex.lock();
+    m_keys.clear();
+    m_kbdMutex.unlock();
     setRunMode(runMode);
     emit executionStart();
-    m_running = true;
     m_thread->start();
+    m_running = true;
   }
 }
 
 void CPU::finished() {
   m_running = false;
-//  std::cout << m_status.str();
   if (!m_system->bus().halt()) {
     emit executionEnded(QString::fromStdString(m_status.str()));
   } else {
@@ -109,14 +117,65 @@ void CPU::openImage(const QString &img, word addr, bool writable) {
 }
 
 void CPU::keyPressed(QKeyEvent *key) {
-  m_kbdMutex.lock();
-  emit terminalWrite(key->text());
-
-//  m_keys.emplace_back(key);
-//  if (m_keys.size() == 1) {
-//    m_system->bus().setNmi();
-//  }
-  m_kbdMutex.unlock();
+  if (m_running) {
+    int k = -1;
+    switch (key->key()) {
+      case Qt::Key_Enter:
+      case Qt::Key_Return:
+        k = '\n';
+        break;
+      case Qt::Key_Backspace:
+        k = '\b';
+        break;
+      case Qt::Key_Tab:
+        k = '\t';
+        break;
+      case Qt::Key_Delete:
+        k = 127;
+        break;
+      case Qt::Key_Up:
+        k = 0x01;
+        break;
+      case Qt::Key_Down:
+        k = 0x02;
+        break;
+      case Qt::Key_Left:
+        k = 0x03;
+        break;
+      case Qt::Key_Right:
+        k = 0x04;
+        break;
+      case Qt::Key_Home:
+        k = 0x05;
+        break;
+      case Qt::Key_End:
+        k = 0x06;
+        break;
+      case Qt::Key_PageUp:
+        k = 0x07;
+        break;
+      case Qt::Key_PageDown:
+        k = 0x09;
+        break;
+      default:
+        break;
+    }
+    if ((key->key() >= Qt::Key_A) && (key->key() <= Qt::Key_Z)) {
+      auto ch = (uchar) key->key() + 32;
+      if (key->modifiers() & Qt::ShiftModifier) {
+        ch -= 32;
+      }
+      k = ch;
+    } else if ((key->key() >= Qt::Key_Space) && (key->key() <= Qt::Key_AsciiTilde)) {
+      k = key->key();
+    }
+    if (k != -1) {
+      m_kbdMutex.lock();
+      m_keys.emplace_back(k);
+      m_kbdMutex.unlock();
+      m_system->bus().setNmi();
+    }
+  }
 }
 
 //#include "cputhread.moc"

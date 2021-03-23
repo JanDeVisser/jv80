@@ -8,7 +8,7 @@ set(CMAKE_AUTOUIC ON)
 set(CMAKE_AUTOMOC ON)
 set(CMAKE_AUTORCC ON)
 
-set(CMAKE_CXX_STANDARD 14)
+set(CMAKE_CXX_STANDARD 17)
 set(CMAKE_CXX_STANDARD_REQUIRED ON)
 cmake_policy(SET CMP0048 NEW)
 
@@ -87,6 +87,21 @@ add_executable(dump_instructions
 
 target_link_libraries(dump_instructions emucomponents)
 
+add_executable(bitmap
+        bitmap/bitmap.cpp bitmap/bitmap.inc
+        )
+
+target_link_libraries(
+        bitmap
+        PRIVATE
+        emucomponents
+        Qt${QT_VERSION_MAJOR}::Svg
+        Qt${QT_VERSION_MAJOR}::Test
+        Qt${QT_VERSION_MAJOR}::Widgets
+        Qt${QT_VERSION_MAJOR}::Core
+)
+
+
 add_executable(
         emu_test include/opcodes.h
         src/test/clock.cpp include/clock.h
@@ -100,7 +115,8 @@ add_executable(
         src/test/jump.cpp
         src/test/io.cpp
         src/test/inout.cpp
-        src/test/pushfl.cpp)
+        src/test/pushfl.cpp
+        src/test/swap.cpp)
 
 target_link_libraries(emu_test emucomponents ${GTEST_LDFLAGS})
 target_compile_options(emu_test PUBLIC ${GTEST_CFLAGS})

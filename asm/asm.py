@@ -5,6 +5,10 @@ import os.path
 import re
 import sys
 
+from functools import reduce
+
+from split import split
+
 opcodes = {
     "nop": 0,
     "mov a,#%02x": 1,
@@ -167,62 +171,39 @@ opcodes = {
     "inc di": 158,
     "dec si": 159,
     "dec di": 160,
-    "out #%02x, a": 161,
-    "out #%02x, b": 162,
-    "out #%02x, c": 163,
-    "out #%02x, d": 164,
-    "in a, #%02x": 165,
-    "in b, #%02x": 166,
-    "in c, #%02x": 167,
-    "in d, #%02x": 168,
+    "out #%02x,a": 161,
+    "out #%02x,b": 162,
+    "out #%02x,c": 163,
+    "out #%02x,d": 164,
+    "in a,#%02x": 165,
+    "in b,#%02x": 166,
+    "in c,#%02x": 167,
+    "in d,#%02x": 168,
     "pushfl": 169,
     "popfl": 170,
     "clrfl": 171,
+    "jz #%04x": 172,
+    "jz *#%04x": 173,
+    "mov *cd,a": 174,
+    "mov *cd,b": 175,
+    "cmp a,#%02x": 176,
+    "cmp b,#%02x": 177,
+    "cmp c,#%02x": 178,
+    "cmp d,#%02x": 179,
+    "and a,#%02x": 180,
+    "and b,#%02x": 181,
+    "and c,#%02x": 182,
+    "and d,#%02x": 183,
+    "or a,#%02x": 184,
+    "or b,#%02x": 185,
+    "or c,#%02x": 186,
+    "or d,#%02x": 187,
+    "mov a,*cd": 188,
+    "bov b,*cd": 189,
     "rti": 253,
     "nmi #%04x": 254,
     "hlt": 255,
 }
-
-
-def _split(line: str):
-
-    # Clean the input string by:
-    # - Stripping leading and trailing whitespace
-    # - Collapsing sequences of spaces and/or tabs into a single space.
-    def clean(s):
-        def _merge_spaces(s):
-            merged = s.replace("  ", " ")
-            return _merge_spaces(merged) if merged != s else s
-
-        return _merge_spaces(s.strip().replace("\t", " "))
-
-    # "Clean" the line. clean() will merge consecutive spaces/tabs into a single space.
-    c = clean(line)
-
-    # If the line is empty after cleaning, return the empty list. Otherwise split on spaces.
-    return c.split() if c != "" else []
-
-
-def split(line):
-    state = 0
-    ix = 0
-    start_quote = 0
-    while ix < len(line):
-        if state == 0:
-            if line[ix] in '\'"`':
-                start_quote = ix
-                state = line[ix]
-            elif line[ix] == '\\':
-                ix += 1
-            elif line[ix] == ';':
-                return split(line[:ix])
-        elif state in '"\'' and line[ix] == state:
-            ret = split(line[:start_quote])
-            ret.append(line[start_quote:ix+1])
-            ret.extend(split(line[ix+1:]))
-            return ret
-        ix += 1
-    return _split(line)
 
 
 def to_bytes(count, *data):
@@ -266,22 +247,44 @@ def to_bytes(count, *data):
     return ret
 
 
-def bytes_to_str(bytes, prefix="", address=None, radix=True):
+def bytes_to_str(bytes, prefix="", address=None, radix=True, suppress_zeros=False):
     lines = []
     b = bytes
     r = "0x" if radix else ""
+    prev_zero = False
     while len(b):
         eight = b[0:8]
-        if address is None:
-            fmt = "{prefix}" + " ".join([f'{r}{{{ix}:02x}}' for ix in range(0, len(eight))])
-            s = fmt.format(*eight, prefix=prefix)
-        else:
-            fmt = "{prefix}{address:04x}  " + " ".join([f'{r}{{{ix}:02x}}' for ix in range(0, len(eight))])
-            s = fmt.format(*eight, address=address, prefix=prefix)
-            address += 8
+        s = ''
+        if suppress_zeros:
+            all_zeros = reduce(lambda x, y: x and (y == 0), eight, True)
+            if all_zeros:
+                if not prev_zero:
+                    s = "..."
+                    prev_zero = True
+                else:
+                    continue
+        if not s:
+            if address is None:
+                fmt = "{prefix}" + " ".join([f'{r}{{{ix}:02x}}' for ix in range(0, len(eight))])
+                s = fmt.format(*eight, prefix=prefix)
+                prev_zero = False
+            else:
+                fmt = "{prefix}{address:04x}  " + " ".join([f'{r}{{{ix}:02x}}' for ix in range(0, len(eight))])
+                s = fmt.format(*eight, address=address, prefix=prefix)
+                address += 8
+                prev_zero = False
         lines.append(s)
         b = b[8:]
     return "\n".join(lines)
+
+
+def parse_number(s):
+    if not s:
+        raise ValueError("Can't parse empty string")
+    if s[0] == '$':
+        s = "0x" + s[1:]
+    num = int(s, 0)
+    return num
 
 
 class Entry:
@@ -334,6 +337,21 @@ class String(Entry):
         image.append(self.string)
         if self.mnemonic == "asciz":
             image.append(0)
+
+
+class Buffer(Entry):
+    def __init__(self, mnemonic, *args):
+        super(Buffer, self).__init__(mnemonic, *args)
+        self.mnemonic = mnemonic
+        self.bytes = parse_number(args[0])
+        if self.bytes < 1 or self.bytes > 256:
+            raise ValueError("Buffer must be between 1 and 256 bytes inclusive")
+
+    def __str__(self):
+        return f'{self.mnemonic} 0x{self.bytes:02x}"'
+
+    def append_to(self, image):
+        image.append("\0" * self.bytes)
 
 
 class Instruction(Entry):
@@ -414,7 +432,7 @@ class TwoArg(Instruction):
     def __init__(self, mnemonic, *args):
         super(TwoArg, self).__init__(mnemonic, *args)
         if len(self.arguments) != 2:
-            self.error = f"{self.mnemonic} takes exactly one argument"
+            self.error = f"{self.mnemonic} takes exactly two arguments"
 
 
 def _parse_operand(op):
@@ -436,6 +454,11 @@ def _parse_operand(op):
         ret["canonical"] = f'{m.group(1)}%04x'
         ret["bytes"] = -1
         ret["constants"] = [val]
+    elif re.match(r"'(.)'", op):
+        m = re.match(r"'(.)'", op)
+        ret["canonical"] = '#%02x'
+        ret["bytes"] = -1
+        ret["constants"] = [ord(m.group(1))]
     elif re.match(r'[*#]?[a-zA-Z_][\w]*', op):
         m = re.match(r'([*#]?)([a-zA-Z_][\w]*)', op)
         reg = m.group(2)
@@ -445,7 +468,10 @@ def _parse_operand(op):
             ret["label"] = reg
             prefix = m.group(1) if m.group(1) else "#"
             ret["canonical"] = f'{prefix}%04x'
-            ret["bytes"] = 3
+            if prefix == '*':
+                ret["bytes"] = 3
+            else:
+                ret["bytes"] = -1
     return ret
 
 
@@ -460,7 +486,7 @@ class Jump(Instruction):
 
         addr = _parse_operand(self.arguments[0])
         self.constants = addr["constants"]
-        self.bytes = addr["bytes"]
+        self.bytes = addr["bytes"] if addr["bytes"] > 0 else 3      # FIXME
         self.label = addr["label"]
 
         self.canonical = f'{self.mnemonic} {addr["canonical"]}'
@@ -482,9 +508,17 @@ class Move(Instruction):
 
 
         # HACK
-        if src["bytes"] < 0:
+        if (src["bytes"] < 0) or (dest["bytes"] < 0):
             val = src["constants"][0] if src["constants"] else None
-            if dest["canonical"] in reserved and len(dest["canonical"]) == 1 and src["canonical"][0] == "#":
+            if self.mnemonic == "in":
+                src["bytes"] = 2
+                src["constants"] = [src["constants"][0] % 256]   # FIXME
+                src["canonical"] = '#%02x'
+            elif self.mnemonic == "out":
+                dest["bytes"] = 2
+                dest["constants"] = [dest["constants"][0] % 256]   # FIXME
+                dest["canonical"] = '#%02x'
+            elif dest["canonical"] in reserved and len(dest["canonical"]) == 1 and src["canonical"][0] == "#":
                 src["bytes"] = 2
                 if val is not None:
                     src["constants"] = [val % 256]
@@ -501,6 +535,8 @@ class Move(Instruction):
         self.canonical = f'{self.mnemonic} {dest["canonical"]},{src["canonical"]}'
 
 
+
+
 mnemonics = {
     "clrfl":  Nop,
     "hlt":    Nop,
@@ -508,7 +544,10 @@ mnemonics = {
     "popfl":  Nop,
     "pushfl": Nop,
     "ret":    Nop,
+    "rti":    Nop,
+    "in":     Move,
     "mov":    Move,
+    "out":    Move,
     "clr":    OneArg,
     "dec":    OneArg,
     "inc":    OneArg,
@@ -519,9 +558,9 @@ mnemonics = {
     "shr":    OneArg,
     "adc":    TwoArg,
     "add":    TwoArg,
-    "and":    TwoArg,
-    "cmp":    TwoArg,
-    "or":     TwoArg,
+    "and":    Move,
+    "cmp":    Move,
+    "or":     Move,
     "sub":    TwoArg,
     "sbb":    TwoArg,
     "swp":    TwoArg,
@@ -530,14 +569,15 @@ mnemonics = {
     "jc":     Jump,
     "jnz":    Jump,
     "jmp":    Jump,
+    "jz":     Jump,
+    "nmi":    Jump,
     "db":     Bytes,
     "dw":     Bytes,
     "data":   Bytes,
+    "buffer": Buffer,
     "asciz":  String,
     "str":    String,
 }
-
-
 reserved = {
     "a", "b", "c", "d", "ab", "cd", "si", "di", "sp", "pc", "flags"
 }
@@ -579,6 +619,15 @@ class Include(Directive):
         return f'.include {self.fname}'
 
 
+class Align(Directive):
+    def __init__(self, boundary):
+        super(Align, self).__init__("align:", boundary)
+        self._boundary = int(boundary, 0)
+
+    def append_to(self, image):
+        image.align(self._boundary)
+
+
 class Segment(Directive):
     def __init__(self, start_address):
         super(Segment, self).__init__(".segment", start_address)
@@ -605,8 +654,8 @@ class Segment(Directive):
         image.set_address(addr)
         for e in self._entries:
             image.list(addr, e)
-            addr += e.bytes
             e.append_to(image)
+            addr += e.bytes
             self._errors.extend(e.errors())
 
 
@@ -691,6 +740,13 @@ class Image:
             else:
                 self._errors.append(f"Cannot append {d} (type {type(d)} to segment")
 
+    def align(self, boundary):
+        remainder = self._address % boundary
+        if remainder != 0:
+            zeros = bytearray()
+            zeros = bytes('\0' * (boundary - remainder))
+            self.append(zeros)
+
     def write(self, fname):
         if self._errors:
             raise ParseException("Cannot write assembled output due to assembly errors")
@@ -699,7 +755,7 @@ class Image:
 
     def dump(self):
         print("\nBinary dump\n")
-        print(bytes_to_str(self._image, address=self._start_address, radix=False))
+        print(bytes_to_str(self._image, address=self._start_address, radix=False, suppress_zeros=True))
 
 
 class AssemblyParser:
@@ -755,6 +811,22 @@ class AssemblyParser:
                 self.parse(args[0])
             else:
                 self._errors.append(".include directive must specify file name")
+        elif directiv == "align":
+            if args:
+                try:
+                    boundary = args[0]
+                    if boundary[0] == '$':
+                        boundary = "0x" + boundary[1:]
+                    boundary = int(boundary, 0)
+                    if boundary <= 1 or boundary > 256:
+                        self._errors.append(".align boundary must be >1 and <= 256")
+                    else:
+                        align = Align(args[0])
+                        self._image.add(align)
+                except ValueError:
+                    self._errors.append(".align boundary must number between 2 and 256 inclusive")
+            else:
+                self._errors.append(".align directive must specify boundary")
         else:
             self._errors.append(f"Invalid directive {directiv}")
 

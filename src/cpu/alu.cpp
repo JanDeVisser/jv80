@@ -59,35 +59,32 @@ SystemError ALU::onHighClock() {
              + ~(alu -> getValue() +
              + (byte) (alu -> bus() -> isSet(SystemBus::C))) + 1;
     },
-
-    /* 0x4 INC */ [](ALU *alu) {
-      return alu -> getValue() + 1;
-    },
-    /* 0x5 DEC */ [](ALU *alu) {
-      return alu -> getValue() - 1;
-    },
-    /* 0x6 */ nullptr,
-    /* 0x7 */ nullptr,
-    /* 0x8 AND */ [](ALU *alu) {
+    /* 0x4 AND */ [](ALU *alu) {
       return alu -> getValue() & alu -> lhs() -> getValue();
     },
-    /* 0x9 OR  */ [](ALU *alu) {
+    /* 0x5 OR  */ [](ALU *alu) {
       return alu -> getValue() | alu -> lhs() -> getValue();
     },
-    /* 0xA XOR */ [](ALU *alu) {
+    /* 0x6 XOR */ [](ALU *alu) {
       return alu -> getValue() ^ alu -> lhs() -> getValue();
     },
-    /* 0xB NOT */ [](ALU *alu) {
+    /* 0x7 INC */ [](ALU *alu) {
+      return alu -> getValue() + 1;
+    },
+    /* 0x8 DEC */ [](ALU *alu) {
+      return alu -> getValue() - 1;
+    },
+    /* 0x9 NOT */ [](ALU *alu) {
       return ~(alu -> getValue()) & 0x00FF;
     },
-    /* 0xC SHL */ [](ALU *alu) {
+    /* 0xA SHL */ [](ALU *alu) {
       word ret = alu -> getValue() << 1;
       if (alu -> bus() -> isSet(SystemBus::C)) {
         ret |= 0x0001;
       }
       return ret & 0x01FF;
     },
-    /* 0xD SHR */ [](ALU *alu) {
+    /* 0xB SHR */ [](ALU *alu) {
       bool carry = (alu -> getValue() & 0x01) != 0;
       word ret = alu -> getValue() >> 1;
       if (alu -> bus() -> isSet(SystemBus::C)) {
@@ -99,6 +96,8 @@ SystemError ALU::onHighClock() {
       }
       return ret;
     },
+    /* 0xC */ nullptr,
+    /* 0xD */ nullptr,
     /* 0xE */ nullptr,
     /* 0xF */ nullptr,
   };

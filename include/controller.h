@@ -67,6 +67,7 @@ private:
   byte             step = 0;
   byte             m_scratch = 0;
   word             m_interruptVector = 0xFFFF;
+  bool             m_servicingNMI = false;
   const MicroCode *microCode;
   MicroCodeRunner *m_runner = nullptr;
   RunMode          m_runMode = Continuous;

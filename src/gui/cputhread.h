@@ -43,16 +43,19 @@ public:
   void           step(word = 0xFFFF);
   void           tick(word = 0xFFFF);
   void           reset();
+  void           interrupt();
   bool           isRunning() const;
   bool           isHalted() const;
   bool           isSuspended() const;
+
+public slots:
   void           keyPressed(QKeyEvent *);
 
 signals:
   void executionStart();
   void executionEnded(const QString &);
   void executionInterrupted(const QString &);
-  void terminalWrite(const QString &);
+  void terminalWrite(int);
 
 
 private:

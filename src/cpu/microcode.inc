@@ -77,6 +77,27 @@
     } \
   }
 
+#define CMP_CONST(op, instr, lhs) \
+  { \
+    .opcode = op, .instruction = instr, .addressingMode = Immediate, .target = TX, \
+    .steps = { \
+      { .action = MicroCode::XDATA, .src = lhs, .target = LHS, .opflags = SystemBus::None }, \
+      { .action = MicroCode::XADDR, .src = PC, .target = MEMADDR, .opflags = SystemBus::Inc }, \
+      { .action = MicroCode::XDATA, .src = MEM, .target = RHS, .opflags = ((byte) ALU::SUB) | SystemBus::Done }, \
+    } \
+  }
+
+#define ALU_OP_CONST(op, instr, lhs, aluOp) \
+  { \
+    .opcode = op, .instruction = instr,  .addressingMode = Immediate, \
+    .steps = { \
+      { .action = MicroCode::XDATA, .src = lhs, .target = LHS, .opflags = SystemBus::None }, \
+      { .action = MicroCode::XADDR, .src = PC, .target = MEMADDR, .opflags = SystemBus::Inc }, \
+      { .action = MicroCode::XDATA, .src = MEM, .target = RHS, .opflags = ALU:: aluOp }, \
+      { .action = MicroCode::XDATA, .src = LHS, .target = lhs, .opflags = SystemBus::Done }, \
+    } \
+  }
+
 #define OUT(op, instr, reg) \
   { \
     .opcode = op, .instruction = instr, .addressingMode = DirectByte, .target = CONTROLLER, \
@@ -811,10 +832,70 @@ static MicroCode mc[256] = {
     }
   },
 
-  { /* 172 */ },
-  { /* 173 */ }, { /* 174 */ }, { /* 175 */ }, { /* 176 */ }, { /* 177 */ }, { /* 178 */ }, { /* 179 */ }, { /* 180 */ },
-  { /* 181 */ }, { /* 182 */ }, { /* 183 */ }, { /* 184 */ }, { /* 185 */ }, { /* 186 */ }, { /* 187 */ }, { /* 188 */ },
-  { /* 189 */ }, { /* 190 */ }, { /* 191 */ }, { /* 192 */ }, { /* 193 */ }, { /* 194 */ }, { /* 195 */ }, { /* 196 */ },
+  {
+    .opcode = JZ, .instruction = "jz #%04x",
+    .addressingMode = static_cast<AddressingMode>(DirectWord | Done), .target = PC,
+    .condition = SystemBus::Z, .condition_op = MicroCode::And
+  },
+
+  {
+    .opcode = JZ_ABS, .instruction = "jz *%04x",
+    .addressingMode = static_cast<AddressingMode>(AbsoluteWord | Done), .target = PC,
+    .condition = SystemBus::Z, .condition_op = MicroCode::And
+  },
+
+  {
+    .opcode = MOV_CD_A, .instruction = "mov *cd,a", .addressingMode = Immediate,
+    .steps = {
+      { .action = MicroCode::XDATA, .src = GP_C, .target = MEMADDR, .opflags = SystemBus::None },
+      { .action = MicroCode::XDATA, .src = GP_D, .target = MEMADDR, .opflags = SystemBus::MSB },
+      { .action = MicroCode::XDATA, .src = GP_A, .target = MEM, .opflags = SystemBus::Done },
+    }
+  },
+
+  {
+    .opcode = MOV_CD_B, .instruction = "mov *cd,b", .addressingMode = Immediate,
+    .steps = {
+      { .action = MicroCode::XDATA, .src = GP_C, .target = MEMADDR, .opflags = SystemBus::None },
+      { .action = MicroCode::XDATA, .src = GP_D, .target = MEMADDR, .opflags = SystemBus::MSB },
+      { .action = MicroCode::XDATA, .src = GP_B, .target = MEM, .opflags = SystemBus::Done },
+    }
+  },
+
+  CMP_CONST(CMP_A_CONST, "cmp a,#%02x", GP_A),
+  CMP_CONST(CMP_B_CONST, "cmp b,#%02x", GP_B),
+  CMP_CONST(CMP_C_CONST, "cmp c,#%02x", GP_C),
+  CMP_CONST(CMP_D_CONST, "cmp d,#%02x", GP_D),
+
+  ALU_OP_CONST(AND_A_CONST, "and a,#%02x", GP_A, AND),
+  ALU_OP_CONST(AND_B_CONST, "and b,#%02x", GP_B, AND),
+  ALU_OP_CONST(AND_C_CONST, "and c,#%02x", GP_C, AND),
+  ALU_OP_CONST(AND_D_CONST, "and d,#%02x", GP_D, AND),
+
+  ALU_OP_CONST(OR_A_CONST, "or a,#%02x", GP_A, OR),
+  ALU_OP_CONST(OR_B_CONST, "or b,#%02x", GP_B, OR),
+  ALU_OP_CONST(OR_C_CONST, "or c,#%02x", GP_C, OR),
+  ALU_OP_CONST(OR_D_CONST, "or d,#%02x", GP_D, OR),
+
+  {
+    .opcode = MOV_A_CD_, .instruction = "mov a,*cd", .addressingMode = Immediate,
+    .steps = {
+      { .action = MicroCode::XDATA, .src = GP_C, .target = MEMADDR, .opflags = SystemBus::None },
+      { .action = MicroCode::XDATA, .src = GP_D, .target = MEMADDR, .opflags = SystemBus::MSB },
+      { .action = MicroCode::XDATA, .src = MEM,  .target = GP_A,    .opflags = SystemBus::Done },
+    }
+  },
+
+  {
+    .opcode = MOV_B_CD_, .instruction = "mov b,*cd", .addressingMode = Immediate,
+    .steps = {
+      { .action = MicroCode::XDATA, .src = GP_C, .target = MEMADDR, .opflags = SystemBus::None },
+      { .action = MicroCode::XDATA, .src = GP_D, .target = MEMADDR, .opflags = SystemBus::MSB },
+      { .action = MicroCode::XDATA, .src = MEM,  .target = GP_B,    .opflags = SystemBus::Done },
+    }
+  },
+
+  { /* 190 */ }, { /* 191 */ }, { /* 192 */ }, { /* 193 */ }, { /* 194 */ }, { /* 195 */ }, { /* 196 */ },
   { /* 197 */ }, { /* 198 */ }, { /* 199 */ }, { /* 200 */ }, { /* 201 */ }, { /* 202 */ }, { /* 203 */ }, { /* 204 */ },
   { /* 205 */ }, { /* 206 */ }, { /* 207 */ }, { /* 208 */ }, { /* 209 */ }, { /* 210 */ }, { /* 211 */ }, { /* 212 */ },
   { /* 213 */ }, { /* 214 */ }, { /* 215 */ }, { /* 216 */ }, { /* 217 */ }, { /* 218 */ }, { /* 219 */ }, { /* 220 */ },
@@ -828,13 +909,7 @@ static MicroCode mc[256] = {
     .steps = {
       POP_ADDR(PC, SystemBus::None),
       { .action = MicroCode::XADDR, .src = SP, .target = MEMADDR, .opflags = SystemBus::Dec },
-      { .action = MicroCode::XADDR, .src = MEM, .target = RHS, .opflags = SystemBus::None },
-      POP_ADDR(Di, SystemBus::None),
-      POP_ADDR(Si, SystemBus::None),
-      POP_REG(GP_D, SystemBus::None),
-      POP_REG(GP_C, SystemBus::None),
-      POP_REG(GP_B, SystemBus::None),
-      POP_REG(GP_A, SystemBus::Done),
+      { .action = MicroCode::XADDR, .src = MEM, .target = RHS, .opflags = SystemBus::Done },
     }
   },
 

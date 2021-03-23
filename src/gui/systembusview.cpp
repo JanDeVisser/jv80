@@ -11,7 +11,7 @@ SystemBusView::SystemBusView(SystemBus &bus, QWidget *parent)
 
   auto bp = bus.backplane();
 
-  auto busData = [this](QString &&label, ByteWidget *&bw, QLed *&led) {
+  auto busData = [this](QString &&label, ByteWidget *&bw, QLed *&led1, QLed *ioLed) {
     auto w = new StyledWidget;
     auto l = new QVBoxLayout;
     auto *lbl = new ImpactLabel(label);
@@ -19,18 +19,22 @@ SystemBusView::SystemBusView(SystemBus &bus, QWidget *parent)
     auto dataLayout = new QHBoxLayout;
     bw = new ByteWidget;
     dataLayout -> addWidget(bw);
-    led = new QLed();
-    led -> setFixedSize(LED_SIZE, LED_SIZE);
-    dataLayout -> addWidget(led);
-    l->addLayout(dataLayout);
+    led1 = new QLed();
+    led1 -> setFixedSize(LED_SIZE, LED_SIZE);
+    dataLayout -> addWidget(led1);
+    if (ioLed != nullptr) {
+      ioLed->setFixedSize(LED_SIZE, LED_SIZE);
+      dataLayout->addWidget(ioLed);
+      l->addLayout(dataLayout);
+    }
     w->setLayout(l);
     w->setStyleSheet("StyledWidget { border: 1px solid grey; border-radius: 5px; }");
     return w;
   };
 
-  grid->addWidget(busData("Data", data, xdata));
-  grid->addWidget(busData("Address", address, xaddr));
-  grid -> addSpacing(20);
+  io = new QLed();
+  grid->addWidget(busData("Data - I/O", data, xdata, io));
+  grid->addWidget(busData("Address", address, xaddr, nullptr));
 
   auto regData = [this](QString &&label, RegisterNameLabel *&reg) {
     auto w = new StyledWidget;
@@ -51,7 +55,7 @@ SystemBusView::SystemBusView(SystemBus &bus, QWidget *parent)
 
   auto w = new StyledWidget;
   auto l = new QVBoxLayout;
-  auto *lbl = new ImpactLabel("Operation");
+  auto lbl = new ImpactLabel("Operation");
   l -> addWidget(lbl, 0, Qt::AlignCenter);
   op = new QLedArray(4);
   op -> setColourForAll(QLed::Red);
@@ -96,7 +100,11 @@ void SystemBusView::refresh() {
   address -> setValue(systemBus.readAddrBus());
 
   get -> setRegister(systemBus.getID());
-  put -> setRegister(systemBus.putID());
+  if (systemBus.io()) {
+    put->setRegister(systemBus.putID());
+  } else {
+    put->clear();
+  }
 
   xdata->setValue(!(systemBus.xdata()));
   xaddr->setValue(!(systemBus.xaddr()));

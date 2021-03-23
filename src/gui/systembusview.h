@@ -30,6 +30,7 @@ private:
   RegisterNameLabel *get;
   QLed              *xdata;
   QLed              *xaddr;
+  QLed              *io;
   QLedArray         *op;
   QLabel            *z;
   QLabel            *c;

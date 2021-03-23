@@ -27,34 +27,31 @@ static Expect expect[16] = {
                    - (byte) (system -> bus().isSet(SystemBus::C)));
   },
 
-  /* 0x4 INC */ [](Harness *system, byte lhs, byte rhs) {
-    return (byte) (lhs + 1);
-  },
-
-
-  /* 0x5 DEC */ [](Harness *system, byte lhs, byte rhs) {
-    return (byte) (lhs - 1);
-  },
-
-  /* 0x6 */ nullptr,
-  /* 0x7 */ nullptr,
-  /* 0x8 AND */ [](Harness *system, byte lhs, byte rhs) {
+  /* 0x4 AND */ [](Harness *system, byte lhs, byte rhs) {
     return lhs & rhs;
   },
 
-  /* 0x9 OR  */ [](Harness *system, byte lhs, byte rhs) {
+  /* 0x5 OR  */ [](Harness *system, byte lhs, byte rhs) {
     return lhs | rhs;
   },
 
-  /* 0xA XOR */ [](Harness *system, byte lhs, byte rhs) {
+  /* 0x6 XOR */ [](Harness *system, byte lhs, byte rhs) {
     return lhs ^ rhs;
   },
 
-  /* 0xB NOT */ [](Harness *system, byte lhs, byte rhs) {
+  /* 0x7 INC */ [](Harness *system, byte lhs, byte rhs) {
+    return (byte) (lhs + 1);
+  },
+
+  /* 0x8 DEC */ [](Harness *system, byte lhs, byte rhs) {
+    return (byte) (lhs - 1);
+  },
+
+  /* 0x9 NOT */ [](Harness *system, byte lhs, byte rhs) {
     return ~lhs;
   },
 
-  /* 0xC SHL */ [](Harness *system, byte lhs, byte rhs) {
+  /* 0xA SHL */ [](Harness *system, byte lhs, byte rhs) {
     byte ret = lhs << 1;
     if (system -> bus().isSet(SystemBus::C)) {
       ret |= 0x01;
@@ -62,13 +59,16 @@ static Expect expect[16] = {
     return ret;
   },
 
-  /* 0xD SHR */ [](Harness *system, byte lhs, byte rhs) {
+  /* 0xB SHR */ [](Harness *system, byte lhs, byte rhs) {
     byte ret = lhs >> 1;
     if (system -> bus().isSet(SystemBus::C)) {
       ret |= 0x80;
     }
     return ret;
   },
+
+  /* 0xC */ nullptr,
+  /* 0xD */ nullptr,
 
   /* 0xE CLR */ [](Harness *system, byte lhs, byte rhs) {
     return (byte) 0;
@@ -112,13 +112,15 @@ struct OpTest {
     const byte *b = bytes();
     mem -> initialize(RAM_START, bytesSize(), b);
     ASSERT_EQ((*mem)[RAM_START], b[0]);
-    (*mem)[0x2000] = reg2instr[m_reg];
-    (*mem)[0x2001] = m_value;
-    word instrAddr = 0x2002;
+    (*mem)[RAM_START] = reg2instr[m_reg];
+    (*mem)[RAM_START + 1] = m_value;
+    word instrAddr = RAM_START + 2;
     if (regs() > 1) {
-      (*mem)[0x2002] = reg2instr[m_reg2];
-      (*mem)[0x2003] = m_value2;
-      instrAddr = 0x2004;
+      (*mem)[RAM_START + 2] = reg2instr[m_reg2];
+      (*mem)[RAM_START + 3] = m_value2;
+      instrAddr = RAM_START + 4;
+    } else if (regs() == -2) {
+      (*mem)[RAM_START + 3] = m_value2;
     }
     (*mem)[instrAddr] = m_op_instr;
 
@@ -187,20 +189,61 @@ struct BinaryOpTest : public OpTest {
     : OpTest(reg, op_instr, op, reg2) {
   }
 
-  const byte * bytes() const override {
+  [[nodiscard]] const byte * bytes() const override {
     return binary_op;
   }
 
-  int bytesSize() const override {
+  [[nodiscard]] int bytesSize() const override {
     return 6;
   }
 
-  int regs() const override {
+  [[nodiscard]] int regs() const override {
     return 2;
   }
 
   int cycles = 16;
-  int cycleCount() const override {
+  [[nodiscard]] int cycleCount() const override {
+    return cycles;
+  }
+
+  void values(byte val1, byte val2) {
+    m_value = val1;
+    m_value2 = val2;
+  }
+};
+
+
+// mov a, #xx      4
+// cmp a, #xx      5/6
+// hlt             3
+// total          12/13
+//
+// cmp 5 cycles, others 6.
+const byte binary_op_const[] = {
+  /* 2000 */ MOV_A_CONST, 0x1F,
+  /* 2002 */ CMP_A_CONST, 0x42,
+  /* 2004 */ HLT,
+};
+
+struct BinaryOpConstTest : public OpTest {
+  BinaryOpConstTest(int reg, byte op_instr, ALU::Operations op)
+    : OpTest(reg, op_instr, op) {
+  }
+
+  [[nodiscard]] const byte * bytes() const override {
+    return binary_op_const;
+  }
+
+  [[nodiscard]] int bytesSize() const override {
+    return 5;
+  }
+
+  [[nodiscard]] int regs() const override {
+    return -2;
+  }
+
+  int cycles = 13;
+  [[nodiscard]] int cycleCount() const override {
     return cycles;
   }
 
@@ -301,7 +344,7 @@ TEST_F(TESTNAME, shrA) {
 }
 
 TEST_F(TESTNAME, clrA) {
-  UnaryOpTest t(GP_A, CLR_A, (ALU::Operations) 0x0E);
+  UnaryOpTest t(GP_A, CLR_A, ALU::CLR);
   t.execute(system, 12);
   ASSERT_TRUE(system -> bus().isSet(SystemBus::Z));
 }
@@ -474,7 +517,7 @@ TEST_F(TESTNAME, shrB) {
 }
 
 TEST_F(TESTNAME, clrB) {
-  UnaryOpTest t(GP_B, CLR_B, (ALU::Operations) 0x0E);
+  UnaryOpTest t(GP_B, CLR_B, ALU::CLR);
   t.execute(system, 12);
   ASSERT_TRUE(system -> bus().isSet(SystemBus::Z));
 }
@@ -645,7 +688,7 @@ TEST_F(TESTNAME, shrC) {
 }
 
 TEST_F(TESTNAME, clrC) {
-  UnaryOpTest t(GP_C, CLR_C, (ALU::Operations) 0x0E);
+  UnaryOpTest t(GP_C, CLR_C, ALU::CLR);
   t.execute(system, 12);
   ASSERT_TRUE(system -> bus().isSet(SystemBus::Z));
 }
@@ -743,7 +786,7 @@ TEST_F(TESTNAME, shrD) {
 }
 
 TEST_F(TESTNAME, clrD) {
-  UnaryOpTest t(GP_D, CLR_D, (ALU::Operations) 0x0E);
+  UnaryOpTest t(GP_D, CLR_D, ALU::CLR);
   t.execute(system, 12);
   ASSERT_TRUE(system -> bus().isSet(SystemBus::Z));
 }
@@ -820,14 +863,14 @@ TEST_F(TESTNAME, sbb_AB_CD_CarrySet) {
 // CMP X,Y
 
 TEST_F(TESTNAME, cmpABNotEqual) {
-  BinaryOpTest t(GP_A, GP_B, CMP_A_B, (ALU::Operations) 0xF);
+  BinaryOpTest t(GP_A, GP_B, CMP_A_B, ALU::CMP);
   t.cycles = 15;
   t.execute(system);
   ASSERT_FALSE(system -> bus().isSet(SystemBus::Z));
 }
 
 TEST_F(TESTNAME, cmpABEqual) {
-  BinaryOpTest t(GP_A, GP_B, CMP_A_B, (ALU::Operations) 0xF);
+  BinaryOpTest t(GP_A, GP_B, CMP_A_B, ALU::CMP);
   t.values(0x42, 0x42);
   t.cycles = 15;
   t.execute(system);
@@ -835,14 +878,14 @@ TEST_F(TESTNAME, cmpABEqual) {
 }
 
 TEST_F(TESTNAME, cmpACNotEqual) {
-  BinaryOpTest t(GP_A, GP_C, CMP_A_C, (ALU::Operations) 0xF);
+  BinaryOpTest t(GP_A, GP_C, CMP_A_C, ALU::CMP);
   t.cycles = 15;
   t.execute(system);
   ASSERT_FALSE(system -> bus().isSet(SystemBus::Z));
 }
 
 TEST_F(TESTNAME, cmpACEqual) {
-  BinaryOpTest t(GP_A, GP_C, CMP_A_C, (ALU::Operations) 0xF);
+  BinaryOpTest t(GP_A, GP_C, CMP_A_C, ALU::CMP);
   t.values(0x42, 0x42);
   t.cycles = 15;
   t.execute(system);
@@ -850,14 +893,14 @@ TEST_F(TESTNAME, cmpACEqual) {
 }
 
 TEST_F(TESTNAME, cmpADNotEqual) {
-  BinaryOpTest t(GP_A, GP_D, CMP_A_D, (ALU::Operations) 0xF);
+  BinaryOpTest t(GP_A, GP_D, CMP_A_D, ALU::CMP);
   t.cycles = 15;
   t.execute(system);
   ASSERT_FALSE(system -> bus().isSet(SystemBus::Z));
 }
 
 TEST_F(TESTNAME, cmpADEqual) {
-  BinaryOpTest t(GP_A, GP_D, CMP_A_D, (ALU::Operations) 0xF);
+  BinaryOpTest t(GP_A, GP_D, CMP_A_D, ALU::CMP);
   t.values(0x42, 0x42);
   t.cycles = 15;
   t.execute(system);
@@ -865,14 +908,14 @@ TEST_F(TESTNAME, cmpADEqual) {
 }
 
 TEST_F(TESTNAME, cmpBCNotEqual) {
-  BinaryOpTest t(GP_B, GP_C, CMP_B_C, (ALU::Operations) 0xF);
+  BinaryOpTest t(GP_B, GP_C, CMP_B_C, ALU::CMP);
   t.cycles = 15;
   t.execute(system);
   ASSERT_FALSE(system -> bus().isSet(SystemBus::Z));
 }
 
 TEST_F(TESTNAME, cmpBCEqual) {
-  BinaryOpTest t(GP_B, GP_C, CMP_B_C, (ALU::Operations) 0xF);
+  BinaryOpTest t(GP_B, GP_C, CMP_B_C, ALU::CMP);
   t.values(0x42, 0x42);
   t.cycles = 15;
   t.execute(system);
@@ -880,14 +923,14 @@ TEST_F(TESTNAME, cmpBCEqual) {
 }
 
 TEST_F(TESTNAME, cmpBDNotEqual) {
-  BinaryOpTest t(GP_B, GP_D, CMP_B_D, (ALU::Operations) 0xF);
+  BinaryOpTest t(GP_B, GP_D, CMP_B_D, ALU::CMP);
   t.cycles = 15;
   t.execute(system);
   ASSERT_FALSE(system -> bus().isSet(SystemBus::Z));
 }
 
 TEST_F(TESTNAME, cmpBDEqual) {
-  BinaryOpTest t(GP_B, GP_D, CMP_B_D, (ALU::Operations) 0xF);
+  BinaryOpTest t(GP_B, GP_D, CMP_B_D, ALU::CMP);
   t.values(0x42, 0x42);
   t.cycles = 15;
   t.execute(system);
@@ -984,3 +1027,115 @@ TEST_F(TESTNAME, decDi) {
   test_wide_unary_op(system, DEC_DI);
   ASSERT_EQ(di -> getValue(), 0x0566);
 }
+
+// -- CMP X,#0x00
+
+TEST_F(TESTNAME, cmp_A_0x00_NotEqual) {
+  BinaryOpConstTest t(GP_A, CMP_A_CONST, ALU::CMP);
+  t.cycles = 12;
+  t.execute(system);
+  ASSERT_FALSE(system -> bus().isSet(SystemBus::Z));
+}
+
+TEST_F(TESTNAME, cmp_A_0x00_Equal) {
+  BinaryOpConstTest t(GP_A, CMP_A_CONST, ALU::CMP);
+  t.values(0x42, 0x42);
+  t.cycles = 12;
+  t.execute(system);
+  ASSERT_TRUE(system -> bus().isSet(SystemBus::Z));
+}
+
+TEST_F(TESTNAME, cmp_B_0x00_NotEqual) {
+  BinaryOpConstTest t(GP_B, CMP_B_CONST, ALU::CMP);
+  t.cycles = 12;
+  t.execute(system);
+  ASSERT_FALSE(system -> bus().isSet(SystemBus::Z));
+}
+
+TEST_F(TESTNAME, cmp_B_0x00_Equal) {
+  BinaryOpConstTest t(GP_B, CMP_B_CONST, ALU::CMP);
+  t.values(0x42, 0x42);
+  t.cycles = 12;
+  t.execute(system);
+  ASSERT_TRUE(system -> bus().isSet(SystemBus::Z));
+}
+
+TEST_F(TESTNAME, cmp_C_0x00_NotEqual) {
+  BinaryOpConstTest t(GP_C, CMP_C_CONST, ALU::CMP);
+  t.cycles = 12;
+  t.execute(system);
+  ASSERT_FALSE(system -> bus().isSet(SystemBus::Z));
+}
+
+TEST_F(TESTNAME, cmp_C_0x00_Equal) {
+  BinaryOpConstTest t(GP_C, CMP_C_CONST, ALU::CMP);
+  t.values(0x42, 0x42);
+  t.cycles = 12;
+  t.execute(system);
+  ASSERT_TRUE(system -> bus().isSet(SystemBus::Z));
+}
+
+TEST_F(TESTNAME, cmp_D_0x00_NotEqual) {
+  BinaryOpConstTest t(GP_D, CMP_D_CONST, ALU::CMP);
+  t.cycles = 12;
+  t.execute(system);
+  ASSERT_FALSE(system -> bus().isSet(SystemBus::Z));
+}
+
+TEST_F(TESTNAME, cmp_D_0x00_Equal) {
+  BinaryOpConstTest t(GP_D, CMP_D_CONST, ALU::CMP);
+  t.values(0x42, 0x42);
+  t.cycles = 12;
+  t.execute(system);
+  ASSERT_TRUE(system -> bus().isSet(SystemBus::Z));
+}
+
+// -- OR X,#0x00
+
+TEST_F(TESTNAME, or_A_0x00) {
+  BinaryOpConstTest t(GP_A, OR_A_CONST, ALU::Operations::OR);
+  t.execute(system);
+}
+
+TEST_F(TESTNAME, or_B_0x00) {
+  BinaryOpConstTest t(GP_B, OR_B_CONST, ALU::Operations::OR);
+  t.execute(system);
+}
+
+
+TEST_F(TESTNAME, or_C_0x00) {
+  BinaryOpConstTest t(GP_C, OR_C_CONST, ALU::Operations::OR);
+  t.execute(system);
+}
+
+
+TEST_F(TESTNAME, or_D_0x00) {
+  BinaryOpConstTest t(GP_D, OR_D_CONST, ALU::Operations::OR);
+  t.execute(system);
+}
+
+
+// -- AND X,#0x00
+
+TEST_F(TESTNAME, and_A_0x00) {
+  BinaryOpConstTest t(GP_A, AND_A_CONST, ALU::Operations::AND);
+  t.execute(system);
+}
+
+TEST_F(TESTNAME, and_B_0x00) {
+  BinaryOpConstTest t(GP_B, AND_B_CONST, ALU::Operations::AND);
+  t.execute(system);
+}
+
+
+TEST_F(TESTNAME, and_C_0x00) {
+  BinaryOpConstTest t(GP_C, AND_C_CONST, ALU::Operations::AND);
+  t.execute(system);
+}
+
+
+TEST_F(TESTNAME, and_D_0x00) {
+  BinaryOpConstTest t(GP_D, AND_D_CONST, ALU::Operations::AND);
+  t.execute(system);
+}
+

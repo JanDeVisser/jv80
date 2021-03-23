@@ -542,110 +542,93 @@ TEST_F(TESTNAME, movCDRegToMemViaSiDiIndirect) {
 }
 
 
+const byte a_to_cd_indirect[] = {
+  MOV_A_CONST, 0x42,
+  MOV_C_CONST, 0x10,
+  MOV_D_CONST, 0x20,
+  MOV_CD_A,
+  HLT,
+};
 
-// SWAP
+TEST_F(TESTNAME, movARegToMemViaCDIndirect) {
+  mem -> initialize(ROM_START, 8, a_to_cd_indirect);
+  ASSERT_EQ((*mem)[START_VECTOR], MOV_A_CONST);
 
-TEST_F(TESTNAME, swpAB) {
-  mem -> initialize(RAM_START, 6, binary_op);
-  ASSERT_EQ((*mem)[RAM_START], MOV_A_CONST);
-  (*mem)[0x2002] = MOV_B_CONST;
-  (*mem)[0x2004] = SWP_A_B;
+  pc -> setValue(START_VECTOR);
+  ASSERT_EQ(pc -> getValue(), START_VECTOR);
 
-  pc -> setValue(RAM_START);
-  ASSERT_EQ(pc -> getValue(), RAM_START);
-
+  // mov a, #xx      4        x3  12
+  // mov *cd, a      5             5
+  // hlt             3             3
+  // total                        20
   auto cycles = system -> run();
   ASSERT_EQ(system -> error(), NoError);
-  ASSERT_EQ(cycles, 16);
+  ASSERT_EQ(cycles, 20);
   ASSERT_EQ(system -> bus().halt(), false);
-  ASSERT_EQ(gp_a -> getValue(),  0xF8);
-  ASSERT_EQ(gp_b -> getValue(),  0x1F);
+  ASSERT_EQ((*mem)[0x2010], 0x42);
 }
 
-TEST_F(TESTNAME, swpAC) {
-  mem -> initialize(RAM_START, 6, binary_op);
-  ASSERT_EQ((*mem)[RAM_START], MOV_A_CONST);
-  (*mem)[0x2002] = MOV_C_CONST;
-  (*mem)[0x2004] = SWP_A_C;
+TEST_F(TESTNAME, movBRegToMemViaCDIndirect) {
+  mem -> initialize(RAM_START, 8, a_to_cd_indirect);
+  ASSERT_EQ((*mem)[RAM_VECTOR], MOV_A_CONST);
+  (*mem)[RAM_VECTOR + 0] = MOV_B_CONST;
+  (*mem)[RAM_VECTOR + 6] = MOV_CD_B;
 
-  pc -> setValue(RAM_START);
-  ASSERT_EQ(pc -> getValue(), RAM_START);
+  pc -> setValue(RAM_VECTOR);
+  ASSERT_EQ(pc -> getValue(), RAM_VECTOR);
 
+  // mov a, #xx      4        x3  12
+  // mov *cd, a      5             5
+  // hlt             3             3
+  // total                        20
   auto cycles = system -> run();
   ASSERT_EQ(system -> error(), NoError);
-  ASSERT_EQ(cycles, 16);
+  ASSERT_EQ(cycles, 20);
   ASSERT_EQ(system -> bus().halt(), false);
-  ASSERT_EQ(gp_a -> getValue(),  0xF8);
-  ASSERT_EQ(gp_c -> getValue(),  0x1F);
+  ASSERT_EQ((*mem)[0x2010], 0x42);
 }
 
-TEST_F(TESTNAME, swpAD) {
-  mem -> initialize(RAM_START, 6, binary_op);
-  ASSERT_EQ((*mem)[RAM_START], MOV_A_CONST);
-  (*mem)[0x2002] = MOV_D_CONST;
-  (*mem)[0x2004] = SWP_A_D;
+const byte cd_indirect_to_a[] = {
+  MOV_C_CONST, 0x06,
+  MOV_D_CONST, 0x20,
+  MOV_A_CD_,
+  HLT,
+  0x42,
+};
 
-  pc -> setValue(RAM_START);
-  ASSERT_EQ(pc -> getValue(), RAM_START);
+TEST_F(TESTNAME, movMemToARegViaCDIndirect) {
+  mem -> initialize(RAM_START, 7, cd_indirect_to_a);
+  ASSERT_EQ((*mem)[RAM_VECTOR], MOV_C_CONST);
 
+  pc -> setValue(RAM_VECTOR);
+  ASSERT_EQ(pc -> getValue(), RAM_VECTOR);
+
+  // mov c, #xx      4        x2   8
+  // mov a, *cd      5             5
+  // hlt             3             3
+  // total                        16
   auto cycles = system -> run();
   ASSERT_EQ(system -> error(), NoError);
   ASSERT_EQ(cycles, 16);
   ASSERT_EQ(system -> bus().halt(), false);
-  ASSERT_EQ(gp_a -> getValue(),  0xF8);
-  ASSERT_EQ(gp_d -> getValue(),  0x1F);
+  ASSERT_EQ(gp_a->getValue(), 0x42);
 }
 
-TEST_F(TESTNAME, swpBC) {
-  mem -> initialize(RAM_START, 6, binary_op);
-  ASSERT_EQ((*mem)[RAM_START], MOV_A_CONST);
-  (*mem)[0x2000] = MOV_B_CONST;
-  (*mem)[0x2002] = MOV_C_CONST;
-  (*mem)[0x2004] = SWP_B_C;
+TEST_F(TESTNAME, movMemToBRegViaCDIndirect) {
+  mem -> initialize(RAM_START, 7, cd_indirect_to_a);
+  ASSERT_EQ((*mem)[RAM_VECTOR], MOV_C_CONST);
+  (*mem)[RAM_VECTOR + 4] = MOV_B_CD_;
 
-  pc -> setValue(RAM_START);
-  ASSERT_EQ(pc -> getValue(), RAM_START);
+  pc -> setValue(RAM_VECTOR);
+  ASSERT_EQ(pc -> getValue(), RAM_VECTOR);
 
+  // mov c, #xx      4        x2   8
+  // mov a, *cd      5             5
+  // hlt             3             3
+  // total                        16
   auto cycles = system -> run();
   ASSERT_EQ(system -> error(), NoError);
   ASSERT_EQ(cycles, 16);
   ASSERT_EQ(system -> bus().halt(), false);
-  ASSERT_EQ(gp_b -> getValue(),  0xF8);
-  ASSERT_EQ(gp_c -> getValue(),  0x1F);
-}
-
-TEST_F(TESTNAME, swpBD) {
-  mem -> initialize(RAM_START, 6, binary_op);
-  ASSERT_EQ((*mem)[RAM_START], MOV_A_CONST);
-  (*mem)[0x2000] = MOV_B_CONST;
-  (*mem)[0x2002] = MOV_D_CONST;
-  (*mem)[0x2004] = SWP_B_D;
-
-  pc -> setValue(RAM_START);
-  ASSERT_EQ(pc -> getValue(), RAM_START);
-
-  auto cycles = system -> run();
-  ASSERT_EQ(system -> error(), NoError);
-  ASSERT_EQ(cycles, 16);
-  ASSERT_EQ(system -> bus().halt(), false);
-  ASSERT_EQ(gp_b -> getValue(),  0xF8);
-  ASSERT_EQ(gp_d -> getValue(),  0x1F);
-}
-
-TEST_F(TESTNAME, swpCD) {
-  mem -> initialize(RAM_START, 6, binary_op);
-  ASSERT_EQ((*mem)[RAM_START], MOV_A_CONST);
-  (*mem)[0x2000] = MOV_C_CONST;
-  (*mem)[0x2002] = MOV_D_CONST;
-  (*mem)[0x2004] = SWP_C_D;
-
-  pc -> setValue(RAM_START);
-  ASSERT_EQ(pc -> getValue(), RAM_START);
-
-  auto cycles = system -> run();
-  ASSERT_EQ(system -> error(), NoError);
-  ASSERT_EQ(cycles, 16);
-  ASSERT_EQ(system -> bus().halt(), false);
-  ASSERT_EQ(gp_c -> getValue(),  0xF8);
-  ASSERT_EQ(gp_d -> getValue(),  0x1F);
+  ASSERT_EQ(gp_b->getValue(), 0x42);
 }

@@ -29,10 +29,12 @@ MainWindow::MainWindow(QWidget *parent)
   setStyleSheet("MainWindow { background-color: black; }");
 
   auto widget = new QWidget;
-  auto mainLayout = new QHBoxLayout;
+  auto windowLayout = new QVBoxLayout;
+  auto consoleLayout = new QHBoxLayout;
   auto layout = new QGridLayout;
-  mainLayout -> addLayout(layout);
-  widget -> setLayout(mainLayout);
+  consoleLayout -> addLayout(layout);
+  windowLayout -> addLayout(consoleLayout);
+  widget -> setLayout(windowLayout);
 
   auto system = m_cpu -> getSystem();
 
@@ -44,11 +46,12 @@ MainWindow::MainWindow(QWidget *parent)
   m_status -> setFont(QFont("ibm3270", 10));
   m_status -> setStyleSheet("QTextEdit { color: green; background-color: black; }");
   tabs -> addTab(m_status, "Log");
+  consoleLayout->addWidget(tabs);
 
-  m_terminal = new Terminal(m_cpu);
-  tabs -> addTab(m_terminal, "Terminal");
-
-  mainLayout->addWidget(tabs);
+  m_terminal = new Terminal();
+  connect(m_cpu, &CPU::terminalWrite, m_terminal, &Terminal::writeCharacter);
+  connect(this, &MainWindow::keyPressed, m_cpu, &CPU::keyPressed);
+  windowLayout -> addWidget(m_terminal);
 
   auto busView = new SystemBusView(system -> bus());
   layout -> addWidget(busView, 0, 0, 1, 2);
@@ -157,20 +160,13 @@ CommandLineEdit * MainWindow::makeCommandLine() {
 
   ret->addCommandDefinition(ret, "quit", 0, 0,
     [this, ret](Command &cmd) {
-#if 0
-      if (QMessageBox::question(this, "Are you sure", "Are you sure you want to quit?") == QMessageBox::Yes) {
-        close();
-      }
-#endif
-#if 1
       if (ret -> query("Are you sure you want to exit? (Y/N)", "yn") == "y") {
         close();
       }
-#endif
     });
 
   ret->addCommandDefinition(ret, "run", 0, 1,
-    [this](Command &cmd) {
+    [this, ret](Command &cmd) {
       if (!m_cpu->isRunning()) {
         word addr = 0xFFFF;
         if (cmd.numArgs() == 1) {
@@ -181,6 +177,7 @@ CommandLineEdit * MainWindow::makeCommandLine() {
             return;
           }
         }
+        ret->clearFocus();
         m_cpu->run(addr);
         cmd.setSuccess();
       } else {
@@ -234,6 +231,17 @@ CommandLineEdit * MainWindow::makeCommandLine() {
           }
         }
         m_cpu->tick(addr);
+      }
+    });
+
+  ret->addCommandDefinition(ret, "pause", 0, 0,
+    [this](Command &cmd) {
+      if (!m_cpu->isRunning()) {
+        cmd.setError("CPU not running");
+      } else if (m_cpu->isHalted()) {
+        cmd.setError("CPU halted");
+      } else {
+        m_cpu->interrupt();
       }
     });
 
@@ -390,6 +398,11 @@ QVector<QString> MainWindow::fileCompletions(const QStringList &args) {
 
 QString MainWindow::query(const QString &prompt, const QString &options) {
   return m_command -> query(prompt, options);
+}
+
+void MainWindow::keyPressEvent(QKeyEvent *ev) {
+  emit keyPressed(ev);
+  QMainWindow::keyPressEvent(ev);
 }
 
 

@@ -41,7 +41,7 @@ void BackPlane::defaultSetup() {
   insert(new AddressRegister(Si, "Si"));  // 0x0A
   insert(new AddressRegister(Di, "Di"));  // 0x0B
   insert(new AddressRegister(TX, "TX"));  // 0x0C
-  insert(new Memory(0x0000, 0x8000, 0x8000, 0x8000, image));    // 0x0F
+  insert(new Memory(0x0000, 0xC000, 0xC000, 0x4000, image));    // 0x0F
 }
 
 Controller::RunMode BackPlane::runMode() const {
@@ -97,7 +97,11 @@ SystemError BackPlane::onClockEvent(const ComponentHandler& handler) {
   }
   switch (m_phase) {
     case SystemClock:
-      return forAllComponents(handler);
+      error(forAllComponents(handler));
+      if (error() == NoError) {
+        error(forAllChannels(handler));
+      }
+      return error();
     case IOClock:
       // xx
     default:

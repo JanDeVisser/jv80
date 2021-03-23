@@ -92,7 +92,7 @@ CommandLineEdit::CommandLineEdit(QWidget *parent)
     : QLineEdit(parent), m_commands(), m_completions(), m_history() {
   setStyle(new BlockCursorStyle(style()));
   connect(this, SIGNAL(textEdited(const QString &)), this, SLOT(edited(const QString &)));
-  connect(this, SIGNAL(returnPressed()), this, SLOT(submitted()));
+//  connect(this, SIGNAL(returnPressed()), this, SLOT(submitted()));
 }
 
 void CommandLineEdit::addCommandDefinition(CommandLineEdit *edit, QString &&command,
@@ -244,13 +244,15 @@ void CommandLineEdit::keyPressEvent(QKeyEvent *e) {
       }
       break;
     case Qt::Key_Escape:
+      m_historyIndex = -1;
       if (m_currentCompletion >= 0) {
         setText(m_typed);
         m_completions.clear();
         m_currentCompletion = -1;
+      } else {
+        clearFocus();
       }
-      m_historyIndex = -1;
-      break;
+      return;
     case Qt::Key_Up:
       if (m_historyIndex + 1 < m_history.size()) {
         if (m_currentCompletion >= 0) {
@@ -271,6 +273,10 @@ void CommandLineEdit::keyPressEvent(QKeyEvent *e) {
         return;
       }
       break;
+    case Qt::Key_Enter:
+    case Qt::Key_Return:
+      submitted();
+      return;
     default:
       if (m_currentCompletion >= 0) {
         m_typed = text(); // ? Maybe

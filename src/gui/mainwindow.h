@@ -26,37 +26,42 @@ class MainWindow : public QMainWindow
   Q_OBJECT
 
 private slots:
-  void cpuStopped(const QString &);
-  void openFile();
+  void                    cpuStopped(const QString &);
+  void                    openFile();
 
 public:
-  explicit     MainWindow(QWidget *parent = nullptr);
-  CPU *        cpu() { return m_cpu; }
-  QString      query(const QString &, const QString &);
-  void         focusOnAddress(word addr) { m_memdump->focusOnAddress(addr); }
-  MemoryBank & currentBank() { return m_memdump->currentBank(); }
+  explicit                MainWindow(QWidget *parent = nullptr);
+  CPU *                   cpu() { return m_cpu; }
+  QString                 query(const QString &, const QString &);
+  void                    focusOnAddress(word addr) { m_memdump->focusOnAddress(addr); }
+  MemoryBank &            currentBank() { return m_memdump->currentBank(); }
 
 private:
-  CPU             *m_cpu = nullptr;
-  QAction         *m_exit = nullptr;
-  QAction         *m_open = nullptr;
-  QLabel          *m_history;
-  QLabel          *m_result;
-  CommandLineEdit *m_command;
+  CPU                    *m_cpu = nullptr;
+  QAction                *m_exit = nullptr;
+  QAction                *m_open = nullptr;
+  QLabel                 *m_history;
+  QLabel                 *m_result;
+  CommandLineEdit        *m_command;
 
-  MemDump         *m_memdump = nullptr;
-  QTextEdit       *m_status = nullptr;
-  Terminal        *m_terminal = nullptr;
+  MemDump                *m_memdump = nullptr;
+  QTextEdit              *m_status = nullptr;
+  Terminal               *m_terminal = nullptr;
 
-  CommandLineEdit * makeCommandLine();
+  CommandLineEdit        *makeCommandLine();
 
 private slots:
-  void          commandResult(const QString &, bool, const QString &);
+  void                    commandResult(const QString &, bool, const QString &);
 
 protected:
-  void          createMenu();
-  void          addHistory(const QString &);
+  void                    createMenu();
+  void                    addHistory(const QString &);
   static QVector<QString> fileCompletions(const QStringList &);
+  void                    keyPressEvent(QKeyEvent *);
+
+signals:
+  void                    keyPressed(QKeyEvent *ev);
+
 };
 
 struct BankCommand {

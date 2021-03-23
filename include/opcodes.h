@@ -204,6 +204,29 @@ enum OpCode {
   PUSH_FLAGS      = 0xA9,
   POP_FLAGS       = 0xAA,
   CLR_FLAGS       = 0xAB,
+  JZ              = 0xAC,
+  JZ_ABS          = 0xAD,
+
+  MOV_CD_A        = 0xAE,
+  MOV_CD_B        = 0xAF,
+
+  CMP_A_CONST     = 0xB0,
+  CMP_B_CONST     = 0xB1,
+  CMP_C_CONST     = 0xB2,
+  CMP_D_CONST     = 0xB3,
+
+  AND_A_CONST     = 0xB4,
+  AND_B_CONST     = 0xB5,
+  AND_C_CONST     = 0xB6,
+  AND_D_CONST     = 0xB7,
+
+  OR_A_CONST      = 0xB8,
+  OR_B_CONST      = 0xB9,
+  OR_C_CONST      = 0xBA,
+  OR_D_CONST      = 0xBB,
+
+  MOV_A_CD_       = 0xBC,
+  MOV_B_CD_       = 0xBD,
 
   RTI             = 0xFD,
   NMIVEC          = 0xFE,
