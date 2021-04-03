@@ -1,9 +1,9 @@
 #ifndef EMU_MICROCODE_INC
 #define EMU_MICROCODE_INC
 
-#include "alu.h"
-#include "opcodes.h"
-#include "registers.h"
+#include <alu.h>
+#include <opcodes.h>
+#include <registers.h>
 
 #define PUSH_REG(reg, opflag) \
   { .action = MicroCode::XADDR, .src = SP, .target = MEMADDR, .opflags = SystemBus::Inc }, \

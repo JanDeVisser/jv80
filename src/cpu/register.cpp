@@ -1,6 +1,6 @@
 #include <iostream>
 
-#include "register.h"
+#include <register.h>
 
 Register::Register(int registerID, std::string &&name)
   : ConnectedComponent(registerID,

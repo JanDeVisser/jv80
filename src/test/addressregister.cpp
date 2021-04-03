@@ -1,8 +1,8 @@
 #include <chrono>
 #include <iostream>
 #include <gtest/gtest.h>
-#include "addressregister.h"
-#include "harness.h"
+#include <addressregister.h>
+#include <harness.h>
 
 static int REGID = 0xC;
 

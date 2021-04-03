@@ -1,7 +1,3 @@
-//
-// Created by jan on 2021-02-05.
-//
-
 #ifndef EMU_REGISTERS_H
 #define EMU_REGISTERS_H
 

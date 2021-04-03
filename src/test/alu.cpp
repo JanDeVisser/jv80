@@ -1,8 +1,8 @@
 #include <chrono>
 #include <iostream>
 #include <gtest/gtest.h>
-#include "alu.h"
-#include "harness.h"
+#include <alu.h>
+#include <harness.h>
 
 
 static int LHS = 0x4;

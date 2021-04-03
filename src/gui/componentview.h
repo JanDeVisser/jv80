@@ -9,10 +9,10 @@
 
 #include "qled.h"
 
-#include "addressregister.h"
-#include "controller.h"
-#include "memory.h"
-#include "register.h"
+#include <addressregister.h>
+#include <controller.h>
+#include <memory.h>
+#include <register.h>
 
 #define LED_SIZE 16
 

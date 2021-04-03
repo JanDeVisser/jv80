@@ -3,11 +3,11 @@
 
 #include <iostream>
 #include <gtest/gtest.h>
-#include "alu.h"
-#include "memory.h"
-#include "controller.h"
-#include "harness.h"
-#include "iochannel.h"
+#include <alu.h>
+#include <memory.h>
+#include <controller.h>
+#include <harness.h>
+#include <iochannel.h>
 
 #include "src/cpu/microcode.inc"
 

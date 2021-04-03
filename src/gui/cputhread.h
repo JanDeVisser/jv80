@@ -7,8 +7,8 @@
 #include <QKeyEvent>
 #include <QThread>
 
-#include "backplane.h"
-#include "iochannel.h"
+#include <backplane.h>
+#include <iochannel.h>
 
 class Executor : public QThread {
 Q_OBJECT

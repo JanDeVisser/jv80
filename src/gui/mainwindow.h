@@ -13,10 +13,10 @@
 #include <QTextEdit>
 #include <QThread>
 
-#include "commands.h"
+#include <backplane.h>
 
+#include "commands.h"
 #include "cputhread.h"
-#include "backplane.h"
 #include "memdump.h"
 #include "terminal.h"
 

@@ -1,7 +1,7 @@
 #include <iostream>
 
 #include <QEventLoop>
-#include "qlogging.h"
+#include <qlogging.h>
 
 #include "blockcursorstyle.h"
 #include "commands.h"

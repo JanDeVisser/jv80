@@ -1,8 +1,8 @@
 #include <chrono>
 #include <iostream>
 #include <gtest/gtest.h>
-#include "memory.h"
-#include "harness.h"
+#include <memory.h>
+#include <harness.h>
 
 static byte initRam[] = { 0x42, 0x37, 0x55 };
 static byte initRom[] = { 0x82, 0x77, 0x95 };

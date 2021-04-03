@@ -1,11 +1,7 @@
-//
-// Created by jan on 2021-01-25.
-//
-
 #ifndef EMU_CLOCK_H
 #define EMU_CLOCK_H
 
-#include "component.h"
+#include <component.h>
 
 enum ClockCycleEvent {
   RisingEdge,

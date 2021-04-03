@@ -4,7 +4,7 @@
 #include <iostream>
 #include <thread>
 
-#include "clock.h"
+#include <clock.h>
 
 /**
  * @return Duration of a clock tick, in nanoseconds.

@@ -6,8 +6,8 @@
 #include <QComboBox>
 #include <QWindow>
 
-#include "backplane.h"
-#include "memory.h"
+#include <backplane.h>
+#include <memory.h>
 
 class MemModel : public QAbstractListModel {
     Q_OBJECT

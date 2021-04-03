@@ -1,6 +1,7 @@
-#include "backplane.h"
+#include <backplane.h>
+#include <memory.h>
+
 #include "cputhread.h"
-#include "memory.h"
 
 #include <QFile>
 

@@ -7,7 +7,7 @@
 
 #include <string>
 #include <utility>
-#include "systembus.h"
+#include <systembus.h>
 
 class AddressRegister : public ConnectedComponent {
 private:

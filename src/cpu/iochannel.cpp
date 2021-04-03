@@ -1,4 +1,4 @@
-#include "iochannel.h"
+#include <iochannel.h>
 
 IOChannel::IOChannel(int channelID, std::string &&name, Input &input)
   : ConnectedComponent(channelID, name), m_input(std::move(input)) {

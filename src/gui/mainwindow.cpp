@@ -7,12 +7,12 @@
 #include <QPainter>
 #include <QTabWidget>
 
-#include "addressregister.h"
-#include "controller.h"
-#include "memory.h"
-#include "register.h"
-#include "registers.h"
-#include "systembus.h"
+#include <addressregister.h>
+#include <controller.h>
+#include <memory.h>
+#include <register.h>
+#include <registers.h>
+#include <systembus.h>
 
 #include "componentview.h"
 #include "mainwindow.h"
