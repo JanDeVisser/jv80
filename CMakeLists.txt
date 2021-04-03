@@ -12,19 +12,6 @@ set(CMAKE_CXX_STANDARD 17)
 set(CMAKE_CXX_STANDARD_REQUIRED ON)
 cmake_policy(SET CMP0048 NEW)
 
-# QtCreator supports the following variables for Android, which are identical to qmake Android variables.
-# Check http://doc.qt.io/qt-5/deployment-android.html for more information.
-# They need to be set before the find_package(Qt5 ...) call.
-
-#if(ANDROID)
-#    set(ANDROID_PACKAGE_SOURCE_DIR "${CMAKE_CURRENT_SOURCE_DIR}/android")
-#    if (ANDROID_ABI STREQUAL "armeabi-v7a")
-#        set(ANDROID_EXTRA_LIBS
-#            ${CMAKE_CURRENT_SOURCE_DIR}/path/to/libcrypto.so
-#            ${CMAKE_CURRENT_SOURCE_DIR}/path/to/libssl.so)
-#    endif()
-#endif()
-
 find_package(PkgConfig)
 pkg_search_module(GTEST REQUIRED gtest_main)
 
@@ -86,21 +73,6 @@ add_executable(dump_instructions
 )
 
 target_link_libraries(dump_instructions emucomponents)
-
-add_executable(bitmap
-        bitmap/bitmap.cpp bitmap/bitmap.inc
-        )
-
-target_link_libraries(
-        bitmap
-        PRIVATE
-        emucomponents
-        Qt${QT_VERSION_MAJOR}::Svg
-        Qt${QT_VERSION_MAJOR}::Test
-        Qt${QT_VERSION_MAJOR}::Widgets
-        Qt${QT_VERSION_MAJOR}::Core
-)
-
 
 add_executable(
         emu_test include/opcodes.h
