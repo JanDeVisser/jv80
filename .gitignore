@@ -73,4 +73,5 @@ Thumbs.db
 *.bin
 
 cmake-build-debug
+build
 .idea
