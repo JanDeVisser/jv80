@@ -3,10 +3,10 @@
 
 #include <functional>
 #include <vector>
-#include <clock.h>
-#include <controller.h>
-#include <memory.h>
-#include <systembus.h>
+#include "clock.h"
+#include "controller.h"
+#include "memory.h"
+#include "systembus.h"
 
 
 class BackPlane : public ComponentContainer {

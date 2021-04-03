@@ -2,9 +2,9 @@
 #define EMU_CONTROLLER_H
 
 #include <vector>
-#include <register.h>
-#include <registers.h>
-#include <systembus.h>
+#include "register.h"
+#include "registers.h"
+#include "systembus.h"
 
 enum AddressingMode {
   Immediate     = 0x00,

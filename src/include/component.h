@@ -60,5 +60,4 @@ public:
 
 typedef std::function<void(Component *)> ComponentHandler;
 
-
 #endif //EMU_COMPONENT_H

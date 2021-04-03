@@ -1,7 +1,3 @@
-//
-// Created by jan on 2021-01-25.
-//
-
 #ifndef EMU_ADDRESSREGISTER_H
 #define EMU_ADDRESSREGISTER_H
 

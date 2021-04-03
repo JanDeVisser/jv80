@@ -1,7 +1,7 @@
 #ifndef EMU_HARNESS_H
 #define EMU_HARNESS_H
 
-#include <systembus.h>
+#include "systembus.h"
 
 class Harness : public ComponentContainer {
 public:

@@ -1,7 +1,7 @@
 #ifndef EMU_IOCHANNEL_H
 #define EMU_IOCHANNEL_H
 
-#include <systembus.h>
+#include "systembus.h"
 
 typedef std::function<byte()> Input;
 typedef std::function<void(byte)> Output;

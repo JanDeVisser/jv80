@@ -2,7 +2,7 @@
 #define EMU_SYSTEMBUS_H
 
 #include <vector>
-#include <component.h>
+#include "component.h"
 
 typedef std::function<void(void)> Reset;
 typedef std::function<void(std::ostream &)> Status;

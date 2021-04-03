@@ -21,22 +21,22 @@ find_package(QT NAMES Qt6 Qt5 COMPONENTS Svg REQUIRED)
 find_package(Qt${QT_VERSION_MAJOR} COMPONENTS Test REQUIRED)
 find_package(Qt${QT_VERSION_MAJOR} COMPONENTS Widgets REQUIRED)
 find_package(Qt${QT_VERSION_MAJOR} COMPONENTS Svg REQUIRED)
-include_directories("include")
+include_directories("src/include")
 
 add_library(emucomponents STATIC
-        src/cpu/alu.cpp include/alu.h
-        src/cpu/backplane.cpp include/backplane.h
-        include/clock.h src/cpu/clock.cpp
-        include/component.h src/cpu/component.cpp
-        include/controller.h src/cpu/controller.cpp
-        include/systembus.h src/cpu/systembus.cpp
-        include/harness.h
-        include/addressregister.h src/cpu/addressregister.cpp
-        include/memory.h src/cpu/memory.cpp
-        include/register.h src/cpu/register.cpp
-        src/cpu/microcode.inc include/registers.h
-        src/cpu/iochannel.cpp include/iochannel.h
-        include/opcodes.h)
+        src/cpu/alu.cpp src/include/alu.h
+        src/cpu/backplane.cpp src/include/backplane.h
+        src/include/clock.h src/cpu/clock.cpp
+        src/include/component.h src/cpu/component.cpp
+        src/include/controller.h src/cpu/controller.cpp
+        src/include/systembus.h src/cpu/systembus.cpp
+        src/include/harness.h
+        src/include/addressregister.h src/cpu/addressregister.cpp
+        src/include/memory.h src/cpu/memory.cpp
+        src/include/register.h src/cpu/register.cpp
+        src/cpu/microcode.inc src/include/registers.h
+        src/cpu/iochannel.cpp src/include/iochannel.h
+        src/include/opcodes.h)
 
 add_executable(emu
         src/gui/main.cpp
@@ -69,19 +69,19 @@ add_executable(emu_cmdline
 target_link_libraries(emu_cmdline emucomponents)
 
 add_executable(dump_instructions
-        src/dump_instructions.cpp include/alu.h include/opcodes.h
+        src/dump_instructions.cpp src/include/alu.h src/include/opcodes.h
 )
 
 target_link_libraries(dump_instructions emucomponents)
 
 add_executable(
-        emu_test include/opcodes.h
-        src/test/clock.cpp include/clock.h
-        src/test/register.cpp include/register.h
-        src/test/addressregister.cpp include/addressregister.h
-        src/test/memory.cpp include/memory.h
-        src/test/alu.cpp  include/alu.h
-        src/test/controller.cpp include/controller.h src/test/controllertest.h
+        emu_test src/include/opcodes.h
+        src/test/clock.cpp src/include/clock.h
+        src/test/register.cpp src/include/register.h
+        src/test/addressregister.cpp src/include/addressregister.h
+        src/test/memory.cpp src/include/memory.h
+        src/test/alu.cpp src/include/alu.h
+        src/test/controller.cpp src/include/controller.h src/test/controllertest.h
         src/test/stack.cpp
         src/test/arithmetic.cpp
         src/test/jump.cpp

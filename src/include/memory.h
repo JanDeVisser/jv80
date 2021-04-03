@@ -10,8 +10,8 @@
 #include <set>
 #include <vector>
 
-#include <addressregister.h>
-#include <systembus.h>
+#include "addressregister.h"
+#include "systembus.h"
 
 class MemoryBank {
 private:

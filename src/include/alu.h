@@ -2,7 +2,7 @@
 #define EMU_ALU_H
 
 #include <functional>
-#include <register.h>
+#include "register.h"
 
 class ALU;
 
