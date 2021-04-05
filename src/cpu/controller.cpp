@@ -4,11 +4,11 @@
 #include <cstring>
 #include <vector>
 
-#include <addressregister.h>
-#include <controller.h>
-#include <opcodes.h>
-#include <register.h>
-#include <registers.h>
+#include "../include/addressregister.h"
+#include "../include/controller.h"
+#include "../include/opcodes.h"
+#include "../include/register.h"
+#include "../include/registers.h"
 
 
 static MicroCode mcNMI = {

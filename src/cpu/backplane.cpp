@@ -1,9 +1,9 @@
-#include <addressregister.h>
-#include <alu.h>
-#include <controller.h>
-#include <memory.h>
-#include <backplane.h>
-#include <register.h>
+#include "../include/addressregister.h"
+#include "../include/alu.h"
+#include "../include/controller.h"
+#include "../include/memory.h"
+#include "../include/backplane.h"
+#include "../include/register.h"
 
 #include "microcode.inc"
 

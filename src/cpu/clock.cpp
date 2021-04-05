@@ -4,7 +4,7 @@
 #include <iostream>
 #include <thread>
 
-#include <clock.h>
+#include "../include/clock.h"
 
 /**
  * @return Duration of a clock tick, in nanoseconds.
@@ -36,7 +36,6 @@ void Clock::sleep() const {
 }
 
 SystemError Clock::start() {
-  cycle = Low;
   SystemError err = NoError;
   sendEvent(ClockListener::Started);
   for (state = Running; err == NoError && state == Running; ) {

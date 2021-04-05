@@ -13,7 +13,7 @@
 #include <QTextEdit>
 #include <QThread>
 
-#include <backplane.h>
+#include "../include/backplane.h"
 
 #include "commands.h"
 #include "cputhread.h"

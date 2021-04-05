@@ -1,6 +1,6 @@
 #include <iostream>
 
-#include <addressregister.h>
+#include "../include/addressregister.h"
 
 AddressRegister::AddressRegister(int registerID, std::string n) : ConnectedComponent(registerID, n) {
 }

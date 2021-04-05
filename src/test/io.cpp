@@ -1,9 +1,9 @@
 #include <chrono>
 #include <iostream>
 #include <gtest/gtest.h>
-#include <harness.h>
-#include <iochannel.h>
-#include <register.h>
+#include "../include/harness.h"
+#include "../include/iochannel.h"
+#include "../include/register.h"
 
 static int REGID = 0xC;
 static int CHANNEL_IN = 0x3;

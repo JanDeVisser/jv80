@@ -1,4 +1,4 @@
-#include <systembus.h>
+#include "../include/systembus.h"
 
 SystemBus::SystemBus(ComponentContainer &bp) : m_backplane(bp) {
   _reset();

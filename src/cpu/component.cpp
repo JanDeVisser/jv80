@@ -1,4 +1,4 @@
-#include <component.h>
+#include "../include/component.h"
 
 ComponentListener * Component::setListener(ComponentListener *l) {
   ComponentListener *old = listener;

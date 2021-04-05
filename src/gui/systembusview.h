@@ -5,7 +5,7 @@
 
 #include "qled.h"
 
-#include <systembus.h>
+#include "../include/systembus.h"
 #include "componentview.h"
 
 class SystemBusView : public QWidget, public ComponentListener {

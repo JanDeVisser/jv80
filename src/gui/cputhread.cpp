@@ -1,5 +1,5 @@
-#include <backplane.h>
-#include <memory.h>
+#include "../include/backplane.h"
+#include "../include/memory.h"
 
 #include "cputhread.h"
 

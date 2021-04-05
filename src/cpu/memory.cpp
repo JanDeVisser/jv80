@@ -2,7 +2,7 @@
 #include <cstring>
 #include <iostream>
 #include <memory>
-#include <memory.h>
+#include "../include/memory.h"
 
 /* ----------------------------------------------------------------------- */
 

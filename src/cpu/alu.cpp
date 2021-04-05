@@ -1,4 +1,4 @@
-#include <alu.h>
+#include "../include/alu.h"
 
 #define B_PATTERN "%c%c%c%c%c%c%c%c"
 #define BINARY(byte)  \

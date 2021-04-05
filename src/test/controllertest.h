@@ -3,13 +3,13 @@
 
 #include <iostream>
 #include <gtest/gtest.h>
-#include <alu.h>
-#include <memory.h>
-#include <controller.h>
-#include <harness.h>
-#include <iochannel.h>
+#include "../include/alu.h"
+#include "../include/memory.h"
+#include "../include/controller.h"
+#include "../include/harness.h"
+#include "../include/iochannel.h"
 
-#include "src/cpu/microcode.inc"
+#include "../cpu/microcode.inc"
 
 constexpr word RAM_START = 0x2000;
 constexpr word RAM_SIZE = 0x2000;

@@ -11,7 +11,6 @@ enum ClockCycleEvent {
 };
 
 
-
 class ClockListener {
 public:
   enum ClockEvent {
@@ -20,36 +19,41 @@ public:
     Error,
     FreqChange,
   };
+
   virtual void clockEvent(ClockEvent event) = 0;
 };
 
 class Clock {
 public:
-  enum Cycle { High, Low };
-  enum State { Running, Stopped };
+  enum State {
+    Running, Stopped
+  };
 
 private:
-  double           khz;
-  Component       *owner;
-  Cycle            cycle = Low;
-  State            state = Stopped;
-  ClockListener   *m_listener = nullptr;
+  double        khz;
+  Component    *owner;
+  State         state = Stopped;
+  ClockListener *m_listener = nullptr;
 
-  void             sendEvent(ClockListener::ClockEvent);
-  void             sleep() const;
-
+  void           sendEvent(ClockListener::ClockEvent);
+  void           sleep() const;
 
 public:
-  Clock(Component *o, double speed_khz) : khz(speed_khz), owner(o) { }
+  Clock(Component *o, double speed_khz) : khz(speed_khz), owner(o) {}
+
   virtual ~Clock() = default;
 
-  double         frequency() { return khz; }
-  unsigned long  tick() const;
-  SystemError    start();
-  void           stop();
-  bool           setSpeed(double);
+  double frequency() { return khz; }
 
-  ClockListener * setListener(ClockListener *);
+  unsigned long tick() const;
+
+  SystemError start();
+
+  void stop();
+
+  bool setSpeed(double);
+
+  ClockListener *setListener(ClockListener *);
 };
 
 #endif //EMU_CLOCK_H

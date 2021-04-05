@@ -1,7 +1,7 @@
 #include <chrono>
 #include <iostream>
 #include <gtest/gtest.h>
-#include <clock.h>
+#include "../include/clock.h"
 
 class TestSystem : public Component {
 protected:

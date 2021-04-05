@@ -1,6 +1,7 @@
 #ifndef EMU_REGISTER_H
 #define EMU_REGISTER_H
 
+#include "register.h"
 #include "systembus.h"
 
 class Register : public ConnectedComponent {

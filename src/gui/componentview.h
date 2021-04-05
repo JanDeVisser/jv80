@@ -9,10 +9,10 @@
 
 #include "qled.h"
 
-#include <addressregister.h>
-#include <controller.h>
-#include <memory.h>
-#include <register.h>
+#include "../include/addressregister.h"
+#include "../include/controller.h"
+#include "../include/memory.h"
+#include "../include/register.h"
 
 #define LED_SIZE 16
 
@@ -157,7 +157,7 @@ signals:
   void valueChanged();
 
 public:
-  void componentEvent(Component *sender, int ev) override;
+  virtual void componentEvent(Component *sender, int ev) override;
 
 protected:
   ConnectedComponent  *component;

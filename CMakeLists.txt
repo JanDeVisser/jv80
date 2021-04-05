@@ -1,4 +1,4 @@
-cmake_minimum_required(VERSION 3.5)
+cmake_minimum_required(VERSION 3.20)
 
 project(emu VERSION 0.1 LANGUAGES CXX)
 
@@ -21,7 +21,8 @@ find_package(QT NAMES Qt6 Qt5 COMPONENTS Svg REQUIRED)
 find_package(Qt${QT_VERSION_MAJOR} COMPONENTS Test REQUIRED)
 find_package(Qt${QT_VERSION_MAJOR} COMPONENTS Widgets REQUIRED)
 find_package(Qt${QT_VERSION_MAJOR} COMPONENTS Svg REQUIRED)
-include_directories("src/include")
+
+include_directories(${PROJECT_SOURCE_DIR}/src/include)
 
 add_library(emucomponents STATIC
         src/cpu/alu.cpp src/include/alu.h
@@ -36,7 +37,8 @@ add_library(emucomponents STATIC
         src/include/register.h src/cpu/register.cpp
         src/cpu/microcode.inc src/include/registers.h
         src/cpu/iochannel.cpp src/include/iochannel.h
-        src/include/opcodes.h)
+        src/include/opcodes.h
+        )
 
 add_executable(emu
         src/gui/main.cpp
@@ -65,13 +67,11 @@ target_link_libraries(
 add_executable(emu_cmdline
         src/cpu/emu.cpp
 )
-
 target_link_libraries(emu_cmdline emucomponents)
 
 add_executable(dump_instructions
         src/dump_instructions.cpp src/include/alu.h src/include/opcodes.h
 )
-
 target_link_libraries(dump_instructions emucomponents)
 
 add_executable(
@@ -95,5 +95,3 @@ target_compile_options(emu_test PUBLIC ${GTEST_CFLAGS})
 
 include(CTest)
 add_test(emu_tests emu_test)
-
-
