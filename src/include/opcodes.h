@@ -39,15 +39,15 @@ enum OpCode {
   MOV_DI_ADDR     = 0x1C,
   MOV_DI_CD       = 0x1D,
 
-  MOV_A_SI        = 0x1E,
-  MOV_B_SI        = 0x1F,
-  MOV_C_SI        = 0x20,
-  MOV_D_SI        = 0x21,
+  MOV_A__SI       = 0x1E,
+  MOV_B__SI       = 0x1F,
+  MOV_C__SI       = 0x20,
+  MOV_D__SI       = 0x21,
 
-  MOV_A_DI        = 0x22,
-  MOV_B_DI        = 0x23,
-  MOV_C_DI        = 0x24,
-  MOV_D_DI        = 0x25,
+  MOV_A__DI       = 0x22,
+  MOV_B__DI       = 0x23,
+  MOV_C__DI       = 0x24,
+  MOV_D__DI       = 0x25,
 
   MOV_DI_SI       = 0x26,
 
@@ -72,19 +72,19 @@ enum OpCode {
   POP_DI          = 0x38,
 
   MOV_ADDR_A      = 0x39,
-  MOV_DI_A        = 0x3A,
+  MOV__DI_A       = 0x3A,
   MOV_ADDR_B      = 0x3B,
-  MOV_DI_B        = 0x3C,
+  MOV__DI_B       = 0x3C,
   MOV_ADDR_C      = 0x3D,
-  MOV_DI_C        = 0x3E,
+  MOV__DI_C       = 0x3E,
   MOV_ADDR_D      = 0x3F,
-  MOV_DI_D        = 0x40,
+  MOV__DI_D       = 0x40,
 
   MOV_ADDR_SI     = 0x41,
   MOV_ADDR_DI     = 0x42,
   MOV_ADDR_CD     = 0x43,
-  MOV_SI_CD_      = 0x44,
-  MOV_DI_CD_      = 0x45,
+  MOV__SI_CD      = 0x44,
+  MOV__DI_CD      = 0x45,
 
   ADD_A_B         = 0x46,
   ADC_A_B         = 0x47,
@@ -207,8 +207,8 @@ enum OpCode {
   JZ              = 0xAC,
   JZ_ABS          = 0xAD,
 
-  MOV_CD_A        = 0xAE,
-  MOV_CD_B        = 0xAF,
+  MOV__CD_A       = 0xAE,
+  MOV__CD_B       = 0xAF,
 
   CMP_A_CONST     = 0xB0,
   CMP_B_CONST     = 0xB1,
@@ -225,8 +225,12 @@ enum OpCode {
   OR_C_CONST      = 0xBA,
   OR_D_CONST      = 0xBB,
 
-  MOV_A_CD_       = 0xBC,
-  MOV_B_CD_       = 0xBD,
+  MOV_A__CD       = 0xBC,
+  MOV_B__CD       = 0xBD,
+
+  MOV__SI_CONST   = 0xBE,
+  MOV__DI_CONST   = 0xBF,
+  MOV__CD_CONST   = 0xC0,
 
   RTI             = 0xFD,
   NMIVEC          = 0xFE,

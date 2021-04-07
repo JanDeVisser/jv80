@@ -249,10 +249,10 @@ TEST_F(TESTNAME, movAddrRegsFromOtherRegs) {
 
 byte mov_gp_regs_from_si[] = {
   /* 8000 */ MOV_SI_CONST, 0x08, 0x80,
-  /* 8003 */ MOV_A_SI,
-  /* 8004 */ MOV_B_SI,
-  /* 8005 */ MOV_C_SI,
-  /* 8006 */ MOV_D_SI,
+  /* 8003 */ MOV_A__SI,
+  /* 8004 */ MOV_B__SI,
+  /* 8005 */ MOV_C__SI,
+  /* 8006 */ MOV_D__SI,
   /* 8007 */ HLT,
   /* 8008 */ 0x42,
   /* 8009 */ 0x43,
@@ -282,10 +282,10 @@ TEST_F(TESTNAME, movGPRegsFromSI) {
 
 byte mov_gp_regs_from_di[] = {
   /* 8000 */ MOV_DI_CONST, 0x08, 0x80,
-  /* 8003 */ MOV_A_DI,
-  /* 8004 */ MOV_B_DI,
-  /* 8005 */ MOV_C_DI,
-  /* 8006 */ MOV_D_DI,
+  /* 8003 */ MOV_A__DI,
+  /* 8004 */ MOV_B__DI,
+  /* 8005 */ MOV_C__DI,
+  /* 8006 */ MOV_D__DI,
   /* 8007 */ HLT,
   /* 8008 */ 0x42,
   /* 8009 */ 0x43,
@@ -445,10 +445,10 @@ const byte gp_to_di_indirect[] = {
   MOV_C_CONST, 0x44,
   MOV_D_CONST, 0x45,
   MOV_DI_CONST, 0x00, 0x20,
-  MOV_DI_A,
-  MOV_DI_B,
-  MOV_DI_C,
-  MOV_DI_D,
+  MOV__DI_A,
+  MOV__DI_B,
+  MOV__DI_C,
+  MOV__DI_D,
   HLT,
 };
 
@@ -514,8 +514,8 @@ const byte cd_to_sidi_indirect[] = {
   MOV_DI_CONST, 0x10, 0x20,
   MOV_C_CONST, 0x42,
   MOV_D_CONST, 0x37,
-  MOV_SI_CD_,
-  MOV_DI_CD_,
+  MOV__SI_CD,
+  MOV__DI_CD,
   HLT,
 };
 
@@ -546,7 +546,7 @@ const byte a_to_cd_indirect[] = {
   MOV_A_CONST, 0x42,
   MOV_C_CONST, 0x10,
   MOV_D_CONST, 0x20,
-  MOV_CD_A,
+  MOV__CD_A,
   HLT,
 };
 
@@ -572,7 +572,7 @@ TEST_F(TESTNAME, movBRegToMemViaCDIndirect) {
   mem -> initialize(RAM_START, 8, a_to_cd_indirect);
   ASSERT_EQ((*mem)[RAM_VECTOR], MOV_A_CONST);
   (*mem)[RAM_VECTOR + 0] = MOV_B_CONST;
-  (*mem)[RAM_VECTOR + 6] = MOV_CD_B;
+  (*mem)[RAM_VECTOR + 6] = MOV__CD_B;
 
   pc -> setValue(RAM_VECTOR);
   ASSERT_EQ(pc -> getValue(), RAM_VECTOR);
@@ -591,7 +591,7 @@ TEST_F(TESTNAME, movBRegToMemViaCDIndirect) {
 const byte cd_indirect_to_a[] = {
   MOV_C_CONST, 0x06,
   MOV_D_CONST, 0x20,
-  MOV_A_CD_,
+  MOV_A__CD,
   HLT,
   0x42,
 };
@@ -617,7 +617,7 @@ TEST_F(TESTNAME, movMemToARegViaCDIndirect) {
 TEST_F(TESTNAME, movMemToBRegViaCDIndirect) {
   mem -> initialize(RAM_START, 7, cd_indirect_to_a);
   ASSERT_EQ((*mem)[RAM_VECTOR], MOV_C_CONST);
-  (*mem)[RAM_VECTOR + 4] = MOV_B_CD_;
+  (*mem)[RAM_VECTOR + 4] = MOV_B__CD;
 
   pc -> setValue(RAM_VECTOR);
   ASSERT_EQ(pc -> getValue(), RAM_VECTOR);
@@ -631,4 +631,65 @@ TEST_F(TESTNAME, movMemToBRegViaCDIndirect) {
   ASSERT_EQ(cycles, 16);
   ASSERT_EQ(system -> bus().halt(), false);
   ASSERT_EQ(gp_b->getValue(), 0x42);
+}
+
+
+const byte mov_const_to_addr_reg_indirect[] = {
+  /* 2000 */ MOV_SI_CONST, 0x06, 0x20,
+  /* 2003 */ MOV__SI_CONST, 0x42,
+  /* 2005 */ HLT,
+  /* 2006 */ 0x37,
+};
+
+TEST_F(TESTNAME, movConstToSiIndirect) {
+  mem -> initialize(RAM_START, 7, mov_const_to_addr_reg_indirect);
+  ASSERT_EQ((*mem)[RAM_VECTOR], MOV_SI_CONST);
+
+  pc -> setValue(RAM_VECTOR);
+  ASSERT_EQ(pc -> getValue(), RAM_VECTOR);
+
+  auto cycles = system -> run();
+  ASSERT_EQ(system -> error(), NoError);
+//  ASSERT_EQ(cycles, 16);
+  ASSERT_EQ(system -> bus().halt(), false);
+  ASSERT_EQ((*mem)[0x2006], 0x42);
+}
+
+TEST_F(TESTNAME, movConstToDiIndirect) {
+  mem -> initialize(RAM_START, 7, mov_const_to_addr_reg_indirect);
+  ASSERT_EQ((*mem)[RAM_VECTOR], MOV_SI_CONST);
+  (*mem)[RAM_VECTOR] = MOV_DI_CONST;
+  (*mem)[RAM_VECTOR+3] = MOV__DI_CONST;
+
+  pc -> setValue(RAM_VECTOR);
+  ASSERT_EQ(pc -> getValue(), RAM_VECTOR);
+
+  auto cycles = system -> run();
+  ASSERT_EQ(system -> error(), NoError);
+  //  ASSERT_EQ(cycles, 16);
+  ASSERT_EQ(system -> bus().halt(), false);
+  ASSERT_EQ((*mem)[0x2006], 0x42);
+}
+
+
+const byte mov_const_to_cd_indirect[] = {
+  /* 2000 */ MOV_C_CONST, 0x07,
+  /* 2002 */ MOV_D_CONST, 0x20,
+  /* 2004 */ MOV__CD_CONST, 0x42,
+  /* 2006 */ HLT,
+  /* 2007 */ 0x37,
+};
+
+TEST_F(TESTNAME, movConstToCDIndirect) {
+  mem -> initialize(RAM_START, 8, mov_const_to_cd_indirect);
+  ASSERT_EQ((*mem)[RAM_VECTOR], MOV_C_CONST);
+
+  pc -> setValue(RAM_VECTOR);
+  ASSERT_EQ(pc -> getValue(), RAM_VECTOR);
+
+  auto cycles = system -> run();
+  ASSERT_EQ(system -> error(), NoError);
+  //  ASSERT_EQ(cycles, 16);
+  ASSERT_EQ(system -> bus().halt(), false);
+  ASSERT_EQ((*mem)[0x2007], 0x42);
 }
