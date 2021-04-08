@@ -29,8 +29,8 @@ public:
                       ~BackPlane() override = default;
   void                run(word = 0x0000);
   void                stop() { clock.stop(); }
-  Controller::RunMode runMode() const;
-  void                setRunMode(Controller::RunMode runMode) const;
+  SystemBus::RunMode  runMode();
+  void                setRunMode(SystemBus::RunMode runMode);
   Controller *        controller() const;
   Memory *            memory() const;
   void                loadImage(word, const byte *, word addr = 0, bool writable = true);

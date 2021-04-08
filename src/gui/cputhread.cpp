@@ -43,20 +43,20 @@ void CPU::run(word addr) {
 }
 
 void CPU::continueExecution() {
-  start(Controller::Continuous);
+  start(SystemBus::Continuous);
 }
 
 void CPU::step(word addr) {
-  start(Controller::BreakAtInstruction);
+  start(SystemBus::BreakAtInstruction);
 }
 
 void CPU::tick(word addr) {
-  start(Controller::BreakAtClock);
+  start(SystemBus::BreakAtClock);
 }
 
 void CPU::interrupt() {
   if (m_running) {
-    setRunMode(Controller::BreakAtInstruction);
+    setRunMode(SystemBus::BreakAtInstruction);
   }
 }
 
@@ -66,7 +66,7 @@ void CPU::reset() {
   }
 }
 
-void CPU::start(Controller::RunMode runMode) {
+void CPU::start(SystemBus::RunMode runMode) {
   if (!m_running && m_system -> bus().halt()) {
     m_kbdMutex.lock();
     m_keys.clear();
@@ -99,7 +99,7 @@ bool CPU::isSuspended() const {
   return !m_system -> bus().sus();
 }
 
-void CPU::setRunMode(Controller::RunMode runMode) const {
+void CPU::setRunMode(SystemBus::RunMode runMode) const {
   m_system -> setRunMode(runMode);
 }
 

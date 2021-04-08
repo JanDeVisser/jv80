@@ -11,6 +11,13 @@ typedef std::function<SystemError()> ClockEvent;
 class ComponentContainer;
 
 class SystemBus : public Component {
+public:
+  enum RunMode {
+    Continuous = 0,
+    BreakAtInstruction = 1,
+    BreakAtClock = 2,
+  };
+
 private:
   ComponentContainer &m_backplane;
   byte                data_bus = 0;
@@ -29,6 +36,7 @@ private:
   byte                m_flags = 0x0;
 
   void                _reset();
+  RunMode             m_runMode = Continuous;
 
 public:
   enum ProcessorFlags {
@@ -85,6 +93,9 @@ public:
   byte             flags() const { return m_flags; }
   bool             isSet(ProcessorFlags) const;
   std::string      flagsString() const;
+
+  RunMode          runMode() const               { return m_runMode;    }
+  void             setRunMode(RunMode runMode)   { m_runMode = runMode; }
 
   ComponentContainer & backplane() {
     return m_backplane;

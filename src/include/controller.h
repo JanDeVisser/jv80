@@ -52,13 +52,6 @@ struct MicroCode {
 class MicroCodeRunner;
 
 class Controller : public Register {
-public:
-  enum RunMode {
-    Continuous = 0,
-    BreakAtInstruction = 1,
-    BreakAtClock = 2,
-  };
-
 private:
   byte             step = 0;
   byte             m_scratch = 0;
@@ -66,21 +59,20 @@ private:
   bool             m_servicingNMI = false;
   const MicroCode *microCode;
   MicroCodeRunner *m_runner = nullptr;
-  RunMode          m_runMode = Continuous;
   int              m_suspended = 0;
 
 public:
   explicit    Controller(const MicroCode *);
-  std::string name() const override   { return "IR";              }
-  int         alias() const override  { return CONTROLLER;           }
+  std::string name() const override       { return "IR";                }
+  int         alias() const override      { return CONTROLLER;          }
 
   std::string instruction() const;
   word        constant() const;
-  byte        scratch() const         { return m_scratch;         }
-  word        interruptVector() const { return m_interruptVector; }
-  int         getStep() const         { return step;              }
-  RunMode     runMode() const         { return m_runMode;         }
-  void        setRunMode(RunMode runMode);
+  byte        scratch() const             { return m_scratch;           }
+  word        interruptVector() const     { return m_interruptVector;   }
+  int         getStep() const             { return step;                }
+  SystemBus::RunMode     runMode() const             { return bus()->runMode();    }
+  void        setRunMode(SystemBus::RunMode runMode) { bus()->setRunMode(runMode); }
   std::string instructionWithOpcode(int) const;
   int         opcodeForInstruction(std::string &&instr) const { return opcodeForInstruction(instr); }
   int         opcodeForInstruction(const std::string &instr) const;
@@ -90,7 +82,7 @@ public:
   SystemError    onRisingClockEdge() override;
   SystemError    onHighClock() override;
   SystemError    onLowClock() override;
-  void           NMI();
+//  void           NMI();
 
   constexpr static int EV_STEPCHANGED = 0x02;
   constexpr static int EV_AFTERINSTRUCTION = 0x03;

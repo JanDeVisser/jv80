@@ -33,7 +33,7 @@ public:
   explicit CPU(QObject * = nullptr);
   ~CPU() override = default;
   BackPlane *    getSystem() { return m_system; }
-  void           setRunMode(Controller::RunMode) const;
+  void           setRunMode(SystemBus::RunMode) const;
   void           openImage(const QString &, word addr = 0, bool writable = true);
   void           openImage(QFile &, word addr = 0, bool writable = true);
   void           openImage(QFile &&, word addr = 0, bool writable = true);
@@ -68,7 +68,7 @@ private:
   std::deque<int>    m_keys;
   std::mutex         m_kbdMutex;
 
-  void start(Controller::RunMode);
+  void start(SystemBus::RunMode);
 
 private slots:
   void finished();

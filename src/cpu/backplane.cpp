@@ -44,14 +44,12 @@ void BackPlane::defaultSetup() {
   insert(new Memory(0x0000, 0xC000, 0xC000, 0x4000, image));    // 0x0F
 }
 
-Controller::RunMode BackPlane::runMode() const {
-  auto c = dynamic_cast<Controller *>(component(IR));
-  return c -> runMode();
+SystemBus::RunMode BackPlane::runMode() {
+  return bus().runMode();
 }
 
-void BackPlane::setRunMode(Controller::RunMode runMode) const {
-  auto c = dynamic_cast<Controller *>(component(IR));
-  return c -> setRunMode(runMode);
+void BackPlane::setRunMode(SystemBus::RunMode runMode) {
+  return bus().setRunMode(runMode);
 }
 
 Controller * BackPlane::controller() const {

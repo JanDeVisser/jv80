@@ -223,10 +223,6 @@ word Controller::constant() const {
   }
 }
 
-void Controller::setRunMode(RunMode runMode) {
-  m_runMode = runMode;
-}
-
 std::ostream & Controller::status(std::ostream &os) {
   char buf[80];
   snprintf(buf, 80, "%1x. IR %02x %04x %-15.15s Step %d", id(), getValue(), constant(), instruction().c_str(), step);
@@ -275,7 +271,7 @@ SystemError Controller::onHighClock() {
 SystemError Controller::onLowClock() {
   const MicroCode *mc;
 
-  if ((m_suspended >= 1) && (runMode() == BreakAtInstruction) && m_runner && m_runner -> complete()) {
+  if ((m_suspended >= 1) && (runMode() == SystemBus::BreakAtInstruction) && m_runner && m_runner -> complete()) {
     m_suspended = -16;
     bus() -> suspend();
     return NoError;
@@ -337,7 +333,7 @@ SystemError Controller::onLowClock() {
   }
   step++;
   sendEvent(EV_STEPCHANGED);
-  if (runMode() == BreakAtClock) {
+  if (runMode() == SystemBus::BreakAtClock) {
     bus() -> suspend();
   }
   return NoError;
