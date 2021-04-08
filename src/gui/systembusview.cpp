@@ -90,7 +90,7 @@ SystemBusView::SystemBusView(SystemBus &bus, QWidget *parent)
 }
 
 void SystemBusView::componentEvent(Component *sender, int ev) {
-  if (ev == Component::EV_VALUECHANGED) {
+  if ((ev == Component::EV_VALUECHANGED) && (systemBus.runMode() != SystemBus::Continuous)) {
     emit valueChanged();
   }
 }

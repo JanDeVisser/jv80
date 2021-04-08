@@ -19,7 +19,7 @@ ComponentView::ComponentView(ConnectedComponent *comp, int width, QWidget *owner
 }
 
 void ComponentView::componentEvent(Component *sender, int ev) {
-  if (ev == Component::EV_VALUECHANGED) {
+  if ((ev == Component::EV_VALUECHANGED) && (component->bus()->runMode() != SystemBus::Continuous)) {
     emit valueChanged();
   }
 }
@@ -49,7 +49,7 @@ InstructionRegisterView::InstructionRegisterView(Controller *reg, QWidget *paren
 }
 
 void InstructionRegisterView::componentEvent(Component *sender, int ev) {
-  if (ev == Controller::EV_STEPCHANGED) {
+  if ((ev == Controller::EV_STEPCHANGED) && (component->bus()->runMode() != SystemBus::Continuous)) {
     emit stepChanged();
   } else {
     ComponentView::componentEvent(sender, ev);
@@ -75,7 +75,9 @@ void MemoryView::componentEvent(Component *sender, int ev) {
       emit imageLoaded();
       // Fall through
     case Memory::EV_CONTENTSCHANGED:
-      emit contentsChanged();
+      if (component->bus()->runMode() != SystemBus::Continuous) {
+        emit contentsChanged();
+      }
       break;
     case Memory::EV_CONFIGCHANGED:
       emit configurationChanged();
