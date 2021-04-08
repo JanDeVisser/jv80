@@ -231,6 +231,7 @@ enum OpCode {
   MOV__SI_CONST   = 0xBE,
   MOV__DI_CONST   = 0xBF,
   MOV__CD_CONST   = 0xC0,
+  MOV_CD_CONST    = 0xC1,
 
   RTI             = 0xFD,
   NMIVEC          = 0xFE,

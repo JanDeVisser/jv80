@@ -176,23 +176,27 @@ byte mov_addr_regs_direct[] = {
   /* 8000 */ MOV_SI_CONST, 0x42, 0x37,
   /* 8003 */ MOV_DI_CONST, 0x42, 0x37,
   /* 8006 */ MOV_SP_CONST, 0x42, 0x37,
-  /* 8009 */ HLT,
+  /* 8009 */ MOV_CD_CONST, 0x42, 0x37,
+  /* 800C */ HLT,
 };
 
 TEST_F(TESTNAME, movAddrRegsDirect) {
-  mem -> initialize(ROM_START, 10, mov_addr_regs_direct);
+  mem -> initialize(ROM_START, 13, mov_addr_regs_direct);
   ASSERT_EQ((*mem)[START_VECTOR], MOV_SI_CONST);
 
   pc -> setValue(START_VECTOR);
   ASSERT_EQ(pc -> getValue(), START_VECTOR);
 
   // mov si, #3742 takes 6 cycles x3.
+  // mov cd, #3742 takes 8 cycles.
   // hlt takes 3.
-  ASSERT_EQ(system -> run(), 21);
+  ASSERT_EQ(system -> run(), 29);
   ASSERT_EQ(system -> bus().halt(), false);
   ASSERT_EQ(si -> getValue(), 0x3742);
   ASSERT_EQ(di -> getValue(), 0x3742);
   ASSERT_EQ(sp -> getValue(), 0x3742);
+  ASSERT_EQ(gp_c -> getValue(), 0x42);
+  ASSERT_EQ(gp_d -> getValue(), 0x37);
 }
 
 byte mov_addr_regs_absolute[] = {
