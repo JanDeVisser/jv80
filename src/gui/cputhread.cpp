@@ -5,18 +5,25 @@
 
 #include <QFile>
 
-CPU::CPU(QObject *parent) : QObject(parent), m_running(false), m_status(), m_keys(), m_kbdMutex() {
+CPU::CPU(QObject *parent)
+    : QObject(parent), m_running(false), m_status(), m_pressedKeys(), m_queuedKeys(), m_kbdMutex() {
   m_system = new BackPlane();
   m_system -> defaultSetup();
   m_system -> setOutputStream(m_status);
   m_keyboard = new IOChannel(0x00, "KEY", [this]() {
     byte ret = 0xFF;
-    m_kbdMutex.lock();
-    if (!m_keys.empty()) {
-      ret = m_keys[0];
-      m_keys.pop_front();
+    {
+      std::lock_guard lg(m_kbdMutex);
+      while (!m_pressedKeys.empty()) {
+        ret = m_pressedKeys.front();
+        m_queuedKeys.push_back(ret);
+        m_pressedKeys.pop_front();
+      }
     }
-    m_kbdMutex.unlock();
+    if (!m_queuedKeys.empty()) {
+      ret = m_queuedKeys.front();
+      m_queuedKeys.pop_front();
+    }
     return ret;
   });
 
@@ -69,7 +76,7 @@ void CPU::reset() {
 void CPU::start(SystemBus::RunMode runMode) {
   if (!m_running && m_system -> bus().halt()) {
     m_kbdMutex.lock();
-    m_keys.clear();
+    m_pressedKeys.clear();
     m_kbdMutex.unlock();
     setRunMode(runMode);
     emit executionStart();
@@ -171,9 +178,8 @@ void CPU::keyPressed(QKeyEvent *key) {
       k = key->key();
     }
     if (k != -1) {
-      m_kbdMutex.lock();
-      m_keys.emplace_back(k);
-      m_kbdMutex.unlock();
+      std::lock_guard lg(m_kbdMutex);
+      m_pressedKeys.emplace_back(k);
       m_system->bus().setNmi();
     }
   }

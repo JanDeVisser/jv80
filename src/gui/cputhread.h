@@ -65,7 +65,8 @@ private:
   IOChannel         *m_terminal;
   bool               m_running;
   std::stringstream  m_status;
-  std::deque<int>    m_keys;
+  std::list<int>     m_pressedKeys;
+  std::list<int>     m_queuedKeys;
   std::mutex         m_kbdMutex;
 
   void start(SystemBus::RunMode);
