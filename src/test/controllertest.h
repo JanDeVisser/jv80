@@ -1,13 +1,19 @@
+/*
+ * Copyright (c) 2021, Jan de Visser <jan@finiandarcy.com>
+ *
+ * SPDX-License-Identifier: GPL-3.0-or-later
+ */
+
 #ifndef EMU_CONTROLLERTEST_H
 #define EMU_CONTROLLERTEST_H
 
-#include <iostream>
+#include "cpu/alu.h"
+#include "cpu/controller.h"
+#include "cpu/harness.h"
+#include "cpu/iochannel.h"
+#include "cpu/memory.h"
 #include <gtest/gtest.h>
-#include "../include/alu.h"
-#include "../include/memory.h"
-#include "../include/controller.h"
-#include "../include/harness.h"
-#include "../include/iochannel.h"
+#include <iostream>
 
 #include "../cpu/microcode.inc"
 

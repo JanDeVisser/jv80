@@ -1,12 +1,22 @@
+/*
+ * Copyright (c) 2021, Jan de Visser <jan@finiandarcy.com>
+ *
+ * SPDX-License-Identifier: GPL-3.0-or-later
+ */
+
 #define TESTNAME Jump
 #include "controllertest.h"
 
 const byte jmp_immediate[] = {
-  /* 2000 */ JMP, 0x06, 0x20,
-  /* 2003 */ MOV_A_CONST, 0x37,
-  /* 2005 */ HLT,
-  /* 2006 */ MOV_A_CONST, 0x42,
-  /* 2008 */ HLT,
+    /* 2000 */ JMP,
+    0x06,
+    0x20,
+    /* 2003 */ MOV_A_CONST,
+    0x37,
+    /* 2005 */ HLT,
+    /* 2006 */ MOV_A_CONST,
+    0x42,
+    /* 2008 */ HLT,
 };
 
 void test_jump_immediate(Harness *system, byte opcode, bool ok) {
@@ -254,4 +264,3 @@ TEST_F(TESTNAME, nmi) {
   ASSERT_EQ(si -> getValue(), 0x3534);
   ASSERT_EQ(di -> getValue(), 0x3736);
 }
-

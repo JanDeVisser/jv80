@@ -1,17 +1,22 @@
-#include <chrono>
-#include <iostream>
-#include <gtest/gtest.h>
-#include "../include/alu.h"
-#include "../include/harness.h"
+/*
+ * Copyright (c) 2021, Jan de Visser <jan@finiandarcy.com>
+ *
+ * SPDX-License-Identifier: GPL-3.0-or-later
+ */
 
+#include "cpu/alu.h"
+#include "cpu/harness.h"
+#include <chrono>
+#include <gtest/gtest.h>
+#include <iostream>
 
 static int LHS = 0x4;
 static int RHS = 0x5;
 
 class ALUTest : public ::testing::Test {
 protected:
-  Harness *system = nullptr;
-  Register *lhs = new Register(LHS);
+    Harness* system = nullptr;
+    Register *lhs = new Register(LHS);
   ALU *alu = new ALU(0x5, lhs);
 
   void SetUp() override {
@@ -358,4 +363,3 @@ TEST_F(ALUTest, shrSetCarry) {
 //  ASSERT_FALSE(system -> bus().isSet(SystemBus::C));
 //  ASSERT_FALSE(system -> bus().isSet(SystemBus::V));
 //}
-

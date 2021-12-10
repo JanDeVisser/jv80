@@ -1,13 +1,20 @@
+/*
+ * Copyright (c) 2021, Jan de Visser <jan@finiandarcy.com>
+ *
+ * SPDX-License-Identifier: GPL-3.0-or-later
+ */
+
 #define TESTNAME Swap
 #include "controllertest.h"
 
 // SWAP
 
-TEST_F(TESTNAME, swpAB) {
-  mem->initialize(RAM_START, 6, binary_op);
-  ASSERT_EQ((*mem)[RAM_START], MOV_A_CONST);
-  (*mem)[0x2002] = MOV_B_CONST;
-  (*mem)[0x2004] = SWP_A_B;
+TEST_F(TESTNAME, swpAB)
+{
+    mem->initialize(RAM_START, 6, binary_op);
+    ASSERT_EQ((*mem)[RAM_START], MOV_A_CONST);
+    (*mem)[0x2002] = MOV_B_CONST;
+    (*mem)[0x2004] = SWP_A_B;
 
   pc->setValue(RAM_START);
   ASSERT_EQ(pc->getValue(), RAM_START);

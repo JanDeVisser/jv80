@@ -1,17 +1,23 @@
+/*
+ * Copyright (c) 2021, Jan de Visser <jan@finiandarcy.com>
+ *
+ * SPDX-License-Identifier: GPL-3.0-or-later
+ */
+
+#include "cpu/addressregister.h"
+#include "cpu/harness.h"
 #include <chrono>
-#include <iostream>
 #include <gtest/gtest.h>
-#include "../include/addressregister.h"
-#include "../include/harness.h"
+#include <iostream>
 
 static int REGID = 0xC;
 
 class AddressRegisterTest : public ::testing::Test {
 protected:
-  Harness *system = nullptr;
-  AddressRegister *reg = nullptr;
+    Harness* system = nullptr;
+    AddressRegister* reg = nullptr;
 
-  void SetUp() override {
+    void SetUp() override {
     reg = new AddressRegister(REGID, "TEST");
     system = new Harness(reg);
   }

@@ -1,3 +1,9 @@
+/*
+ * Copyright (c) 2021, Jan de Visser <jan@finiandarcy.com>
+ *
+ * SPDX-License-Identifier: GPL-3.0-or-later
+ */
+
 #define TESTNAME Arithmetic
 #include "controllertest.h"
 
@@ -5,8 +11,7 @@
 // A R I T H M E T I C
 //
 
-
-typedef std::function<byte(Harness *, byte, byte)> Expect;
+typedef std::function<byte(Harness*, byte, byte)> Expect;
 
 static Expect expect[16] = {
   /* 0x0 ADD */ [](Harness *system, byte lhs, byte rhs) {
@@ -1138,4 +1143,3 @@ TEST_F(TESTNAME, and_D_0x00) {
   BinaryOpConstTest t(GP_D, AND_D_CONST, ALU::Operations::AND);
   t.execute(system);
 }
-

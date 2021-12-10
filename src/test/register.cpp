@@ -1,17 +1,23 @@
+/*
+ * Copyright (c) 2021, Jan de Visser <jan@finiandarcy.com>
+ *
+ * SPDX-License-Identifier: GPL-3.0-or-later
+ */
+
+#include "cpu/register.h"
+#include "cpu/harness.h"
 #include <chrono>
-#include <iostream>
 #include <gtest/gtest.h>
-#include "../include/register.h"
-#include "../include/harness.h"
+#include <iostream>
 
 static int REGID = 0xC;
 
 class RegisterTest : public ::testing::Test {
 protected:
-  Harness *system = nullptr;
-  Register *reg = nullptr;
+    Harness* system = nullptr;
+    Register* reg = nullptr;
 
-  void SetUp() override {
+    void SetUp() override {
     reg = new Register(REGID);
     system = new Harness(reg);
   }

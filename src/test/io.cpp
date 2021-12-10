@@ -1,9 +1,15 @@
+/*
+ * Copyright (c) 2021, Jan de Visser <jan@finiandarcy.com>
+ *
+ * SPDX-License-Identifier: GPL-3.0-or-later
+ */
+
+#include "cpu/harness.h"
+#include "cpu/iochannel.h"
+#include "cpu/register.h"
 #include <chrono>
-#include <iostream>
 #include <gtest/gtest.h>
-#include "../include/harness.h"
-#include "../include/iochannel.h"
-#include "../include/register.h"
+#include <iostream>
 
 static int REGID = 0xC;
 static int CHANNEL_IN = 0x3;
@@ -11,7 +17,7 @@ static int CHANNEL_OUT = 0x5;
 
 class IOTest : public ::testing::Test {
 protected:
-  Harness *system = nullptr;
+    Harness *system = nullptr;
   Register *reg;
   IOChannel *channelIn = nullptr;
   IOChannel *channelOut = nullptr;

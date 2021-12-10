@@ -1,5 +1,9 @@
 #!/usr/bin/python
 
+#  Copyright (c) 2021, Jan de Visser <jan@finiandarcy.com>
+#
+#  SPDX-License-Identifier: GPL-3.0-or-later
+
 import re
 
 r = re.compile("(0x[0-9a-f]{2},?){8}")

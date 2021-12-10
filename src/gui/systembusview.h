@@ -1,40 +1,48 @@
-#ifndef EMU_SYSTEMBUSVIEW_H
-#define EMU_SYSTEMBUSVIEW_H
+/*
+ * Copyright (c) 2021, Jan de Visser <jan@finiandarcy.com>
+ *
+ * SPDX-License-Identifier: GPL-3.0-or-later
+ */
+
+#pragma once
 
 #include <QWidget>
 
-#include "qled.h"
+#include <gui/qled.h>
 
-#include "../include/systembus.h"
-#include "componentview.h"
+#include <cpu/systembus.h>
+#include <gui/componentview.h>
 
-class SystemBusView : public QWidget, public ComponentListener {
-  Q_OBJECT
+namespace Obelix::JV80::GUI {
+
+class SystemBusView : public QWidget
+    , public ComponentListener {
+    Q_OBJECT
 
 signals:
-  void valueChanged();
+    void valueChanged();
 
 public:
-  explicit SystemBusView(SystemBus &bus, QWidget *parent = nullptr);
-  void componentEvent(Component *sender, int ev) override;
+    explicit SystemBusView(SystemBus& bus, QWidget* parent = nullptr);
+    void componentEvent(Component const* sender, int ev) override;
 
 private slots:
-  void refresh();
+    void refresh();
 
 private:
-  SystemBus         &systemBus;
-  QLayout           *layout;
-  ByteWidget        *data;
-  ByteWidget        *address;
-  RegisterNameLabel *put;
-  RegisterNameLabel *get;
-  QLed              *xdata;
-  QLed              *xaddr;
-  QLed              *io;
-  QLedArray         *op;
-  QLabel            *z;
-  QLabel            *c;
-  QLabel            *v;
+    SystemBus& systemBus;
+    QLayout* layout;
+    ByteWidget* data;
+    ByteWidget* address;
+    RegisterNameLabel* put;
+    RegisterNameLabel* get;
+    QLed* xdata;
+    QLed* xaddr;
+    QLed* io;
+    QLedArray* op;
+    QLabel* z;
+    QLabel* c;
+    QLabel* v;
 };
 
-#endif //EMU_SYSTEMBUS_H
+}

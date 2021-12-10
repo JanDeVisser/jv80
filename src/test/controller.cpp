@@ -1,13 +1,20 @@
+/*
+ * Copyright (c) 2021, Jan de Visser <jan@finiandarcy.com>
+ *
+ * SPDX-License-Identifier: GPL-3.0-or-later
+ */
+
 #define TESTNAME ControllerTest
 #include "controllertest.h"
 
 byte mov_a_direct[] = {
-  /* 8000 */ MOV_A_CONST, 0x42,
-  /* 8002 */ HLT
+    /* 8000 */ MOV_A_CONST, 0x42,
+    /* 8002 */ HLT
 };
 
-TEST_F(TESTNAME, movADirect) {
-  mem -> initialize(ROM_START, 3, mov_a_direct);
+TEST_F(TESTNAME, movADirect)
+{
+    mem -> initialize(ROM_START, 3, mov_a_direct);
   ASSERT_EQ((*mem)[START_VECTOR], MOV_A_CONST);
 
   pc -> setValue(START_VECTOR);

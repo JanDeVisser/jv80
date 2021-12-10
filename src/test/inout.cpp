@@ -1,10 +1,18 @@
+/*
+ * Copyright (c) 2021, Jan de Visser <jan@finiandarcy.com>
+ *
+ * SPDX-License-Identifier: GPL-3.0-or-later
+ */
+
 #define TESTNAME InputOutput
 #include "controllertest.h"
 
 const byte out[] = {
-  /* 2000 */ MOV_A_CONST, 0x42,
-  /* 2002 */ OUT_A, CHANNEL_OUT,
-  /* 2004 */ HLT,
+    /* 2000 */ MOV_A_CONST,
+    0x42,
+    /* 2002 */ OUT_A,
+    CHANNEL_OUT,
+    /* 2004 */ HLT,
 };
 
 void test_io(Harness *system, byte opcode_init, byte opcode_io, byte channel = CHANNEL_OUT) {
@@ -76,4 +84,3 @@ TEST_F(TESTNAME, inD) {
   test_io(system, MOV_D_CONST, IN_D, CHANNEL_IN);
   ASSERT_EQ(gp_d -> getValue(), 0x39);
 }
-

@@ -1,15 +1,21 @@
+/*
+ * Copyright (c) 2021, Jan de Visser <jan@finiandarcy.com>
+ *
+ * SPDX-License-Identifier: GPL-3.0-or-later
+ */
+
+#include "cpu/clock.h"
 #include <chrono>
-#include <iostream>
 #include <gtest/gtest.h>
-#include "../include/clock.h"
+#include <iostream>
 
 class TestSystem : public Component {
 protected:
 public:
-  Clock clock;
-  int max_cycles = -1;
-  int cycles = 0;
-  int state = 0;
+    Clock clock;
+    int max_cycles = -1;
+    int cycles = 0;
+    int state = 0;
 
   TestSystem() : clock(this, 1) { }
 
@@ -99,4 +105,3 @@ TEST_F(ClockTest, ticksAreAccurate) {
   ASSERT_EQ(system->cycles, 1000);
   ASSERT_NEAR(std::chrono::duration_cast<std::chrono::milliseconds>(finish - start).count(), 1000, 500);
 }
-

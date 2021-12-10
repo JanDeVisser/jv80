@@ -1,17 +1,30 @@
-#include "../include/component.h"
+/*
+ * Copyright (c) 2021, Jan de Visser <jan@finiandarcy.com>
+ *
+ * SPDX-License-Identifier: GPL-3.0-or-later
+ */
 
-ComponentListener * Component::setListener(ComponentListener *l) {
-  ComponentListener *old = listener;
-  listener = l;
-  return old;
+#include <cpu/component.h>
+
+namespace Obelix::JV80::CPU {
+
+ComponentListener* Component::setListener(ComponentListener* l)
+{
+    ComponentListener* old = listener;
+    listener = l;
+    return old;
 }
 
-void Component::sendEvent(int ev) {
-  if (listener) {
-    listener->componentEvent(this, ev);
-  }
+void Component::sendEvent(int ev) const
+{
+    if (listener) {
+        listener->componentEvent(this, ev);
+    }
 }
 
-std::ostream & operator << (std::ostream &os, Component &c) {
-  return c.status(os);
+std::ostream& operator<<(std::ostream& os, Component& c)
+{
+    return c.status(os);
+}
+
 }

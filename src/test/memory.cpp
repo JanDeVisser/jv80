@@ -1,16 +1,22 @@
+/*
+ * Copyright (c) 2021, Jan de Visser <jan@finiandarcy.com>
+ *
+ * SPDX-License-Identifier: GPL-3.0-or-later
+ */
+
+#include "cpu/memory.h"
+#include "cpu/harness.h"
 #include <chrono>
-#include <iostream>
 #include <gtest/gtest.h>
-#include "../include/memory.h"
-#include "../include/harness.h"
+#include <iostream>
 
 static byte initRam[] = { 0x42, 0x37, 0x55 };
 static byte initRom[] = { 0x82, 0x77, 0x95 };
 
 class MemoryTest : public ::testing::Test {
 protected:
-  Harness *system = nullptr;
-  Memory *mem = nullptr;
+    Harness* system = nullptr;
+    Memory *mem = nullptr;
 
   void SetUp() override {
     mem = new Memory(0x0000, 0x2000, 0x8000, 0x2000);

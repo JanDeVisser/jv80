@@ -1,3 +1,7 @@
+#  Copyright (c) 2021, Jan de Visser <jan@finiandarcy.com>
+#
+#  SPDX-License-Identifier: GPL-3.0-or-later
+
 opcodes = {
   "nop": 0,
   "mov a,#%02x": 1,

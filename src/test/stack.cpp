@@ -1,11 +1,17 @@
+/*
+ * Copyright (c) 2021, Jan de Visser <jan@finiandarcy.com>
+ *
+ * SPDX-License-Identifier: GPL-3.0-or-later
+ */
+
 #define TESTNAME Stack
 #include "controllertest.h"
 
 const byte push_a[] = {
-  /* 8000 */ MOV_SP_CONST, 0x00, 0x20,
-  /* 8003 */ MOV_A_CONST, 0x42,
-  /* 8005 */ PUSH_A,
-  /* 8006 */ HLT
+    /* 8000 */ MOV_SP_CONST, 0x00, 0x20,
+    /* 8003 */ MOV_A_CONST, 0x42,
+    /* 8005 */ PUSH_A,
+    /* 8006 */ HLT
 };
 
 TEST_F(TESTNAME, pushA) {
@@ -143,4 +149,3 @@ TEST_F(TESTNAME, pushPopAddrRegs) {
   ASSERT_EQ((*mem)[0x2002], 0x78);
   ASSERT_EQ((*mem)[0x2003], 0x56);
 }
-
